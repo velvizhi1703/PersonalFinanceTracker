@@ -1,0 +1,327 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #0a192f; /* Dark Background */
+    color: white;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background: #112240; /* Sidebar Dark Blue */
+    color: white;
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
+}
+
+.sidebar h2 {
+    text-align: center;
+    color: #64ffda;
+    margin-bottom: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    padding: 12px;
+    margin: 8px 0;
+    transition: 0.3s;
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+}
+.sidebar ul li a.active {
+    font-weight: bold;
+    color: #007bff;
+}
+.sidebar nav ul li a.active {
+    background-color: #4CAF50; /* Green highlight */
+    color: white;
+    font-weight: bold;
+}
+
+
+.sidebar ul li:hover {
+    background: #233554;
+    border-radius: 5px;
+    padding-left: 10px;
+}
+
+/* Main Content */
+.dashboard-content {
+    margin-left: 260px;
+    padding: 30px;
+    width: calc(100% - 260px);
+}
+
+/* Header Section */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #112240;
+    border-radius: 10px;
+}
+
+.dashboard-header h1 {
+    font-size: 24px;
+    color: #64ffda;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+/* Summary Cards */
+.summary-cards {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.card {
+    background: #233554;
+    padding: 20px;
+    border-radius: 10px;
+    width: 22%;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    transition: 0.3s ease-in-out;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+/* Card Colors */
+.card.income {
+    background: #28a745;
+}
+
+.card.expense {
+    background: #dc3545;
+}
+
+.card.cash {
+    background: #007bff;
+}
+
+.card.transactions {
+    background: #6f42c1;
+}
+
+/* Charts Section */
+.charts-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 20px;
+}
+
+.chart-box {
+    width: 48%;
+    background: #233554;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+}
+
+canvas {
+    max-width: 100%;
+}
+
+/* Budget Section */
+.budget-section {
+    margin-top: 20px;
+    padding: 15px;
+    background: #233554;
+    border-radius: 8px;
+    text-align: center;
+    color: white;
+}
+
+.budget-section span {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #233554;
+    color: white;
+}
+
+th, td {
+    border: 1px solid #dee2e6;
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background: #007bff;
+    color: white;
+}
+
+/* Search Box */
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+}
+
+/* Buttons */
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+.disable-btn {
+    background: red;
+    color: white;
+}
+
+.enable-btn {
+    background: green;
+    color: white;
+}
+
+/* Logout Button */
+#logoutButton {
+    width: 100%;
+    background: red;
+    color: white;
+    text-align: center;
+    padding: 12px;
+    border-radius: 5px;
+    display: block;
+    text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .card {
+        width: 48%;
+    }
+    .chart-box {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .card {
+        width: 100%;
+    }
+    .dashboard-cards {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    .dashboard-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    #transactionHistorySection {
+    display: none; /* Initially hide transactions */
+}
+/* Sidebar Active Highlight */
+.nav-item a.active {
+    background-color: #375a7f;
+    color: white;
+}
+
+/* Filters & Search */
+.filter-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.filter-dropdown, .search-bar {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Transactions List */
+.transaction-group {
+    margin-top: 20px;
+}
+
+.transaction-group h3 {
+    background-color: #2a3f54;
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.transaction-item {
+    background-color: #1e2a38;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Pagination */
+.pagination-container {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.pagination-button {
+    background-color: #2a3f54;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+}
