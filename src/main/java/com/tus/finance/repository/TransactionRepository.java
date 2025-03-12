@@ -18,5 +18,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     @Query("SELECT COUNT(t) FROM Transaction t WHERE t.user.id = :userId")
     int countByUserId(@Param("userId") Long userId);
+    
+//    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND MONTH(t.date) = :month AND YEAR(t.date) = :year")
+//    List<Transaction> findByUserIdAndMonthAndYear(@Param("userId") Long userId, @Param("month") int month, @Param("year") int year);
+
 
 }

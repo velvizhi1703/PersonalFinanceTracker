@@ -20,6 +20,7 @@ import com.tus.finance.repository.UserRepository;
 import com.tus.finance.service.CustomUserDetailsService;
 
 @Configuration
+
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;

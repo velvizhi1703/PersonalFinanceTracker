@@ -1,7 +1,9 @@
 package com.tus.finance.controller;
 
+import com.tus.finance.model.Budget;
 import com.tus.finance.model.Transaction;
 import com.tus.finance.model.User;
+import com.tus.finance.repository.BudgetRepository;
 import com.tus.finance.repository.TransactionRepository;
 import com.tus.finance.repository.UserRepository;
 import com.tus.finance.security.JwtUtil;
@@ -16,9 +18,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -29,13 +34,15 @@ public class TransactionController {
     private final TransactionRepository transactionRepository;
     private final JwtUtil jwtUtil;
 
+    private final BudgetRepository budgetRepository;
     @Autowired
-    public TransactionController(TransactionService transactionService, UserService userService,UserRepository userRepository,TransactionRepository transactionRepository, JwtUtil jwtUtil) { 
+    public TransactionController(TransactionService transactionService, UserService userService,UserRepository userRepository,TransactionRepository transactionRepository,BudgetRepository budgetRepository, JwtUtil jwtUtil) { 
         this.transactionService = transactionService;
         this.userService = userService;
         this.userRepository = userRepository;
         this.transactionRepository = transactionRepository;
         this.jwtUtil=jwtUtil;
+        this.budgetRepository = budgetRepository;
     }
 
     /**
@@ -128,6 +135,31 @@ public class TransactionController {
         double cashInHand = income - expense;
         int numTransactions = transactionRepository.countByUserId(user.getId());
 
+        // ✅ Compute Expense Breakdown by Category
+        List<Transaction> transactions = transactionRepository.findByUserId(user.getId());
+        Map<String, Double> expenseBreakdown = transactions.stream()
+            .filter(t -> "DEBIT".equalsIgnoreCase(t.getType())) // Only Debit Transactions
+            .collect(Collectors.groupingBy(
+                Transaction::getCategory, 
+                Collectors.summingDouble(t -> t.getAmount().doubleValue())
+            ));
+
+        // ✅ Fetch Budget (If Exists)
+        Optional<Budget> budgetOpt = budgetRepository.findCurrentMonthBudget(user.getId());
+        Budget budget;
+        
+        if (budgetOpt.isEmpty()) {
+            budget = new Budget(user, LocalDate.now().getMonthValue(), LocalDate.now().getYear(), 10000.0); // Default 10000
+            budgetRepository.save(budget);  // ✅ Save to Database
+        } else {
+            budget = budgetOpt.get();
+        }
+
+        // ✅ Populate Budget Details
+        Map<String, Double> budgetDetails = new HashMap<>();
+        budgetDetails.put("spent", expense);
+        budgetDetails.put("remaining", budget.getAmount() - expense);
+
         // ✅ Update user data
         user.setTotalIncome(income);
         user.setTotalExpense(expense);
@@ -135,15 +167,19 @@ public class TransactionController {
         user.setNumTransactions(numTransactions);
         userRepository.save(user); // Save changes
 
+        // ✅ Prepare API Response (With Charts Data)
         Map<String, Object> dashboardData = Map.of(
             "income", income,
             "expense", expense,
             "cash_in_hand", cashInHand,
-            "num_transactions", numTransactions
+            "num_transactions", numTransactions,
+            "expenseBreakdown", expenseBreakdown,  // ✅ Required for Pie Chart
+            "budget", budgetDetails                 // ✅ Required for Budget Meter
         );
 
         return ResponseEntity.ok(dashboardData);
     }
+
 
 
 }

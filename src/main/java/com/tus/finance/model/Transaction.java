@@ -24,6 +24,11 @@ public class Transaction {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore  // Prevents infinite loop when serializing JSON
     private User user;
+    
+    public String getType() {
+        return type.name();  // ✅ Converts Enum to String
+    }
+
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -43,4 +48,5 @@ public class Transaction {
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+    public void setType(TransactionType type) { this.type = type; }
 }

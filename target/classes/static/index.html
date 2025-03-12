@@ -142,13 +142,17 @@
 							<canvas id="expenseChart"></canvas>
 						</div>
 						<div class="chart-box">
-							<h2>Budget: 10000</h2>
-							<canvas id="budgetChart"></canvas>
+							<h2>
+								Budget: <span id="budgetAmount">Loading...</span>
+							</h2>
 							<p>
-								Remaining: <span id="remainingBudget">1460</span>
+								Remaining: <span id="remainingBudget">Loading...</span>
 							</p>
+							<canvas id="budgetChart"></canvas>
+							<!-- ✅ Correctly placed -->
 						</div>
 					</section>
+
 				</div>
 
 				<!-- Transactions History Section -->
@@ -183,11 +187,6 @@
 						</div>
 
 					</div>
-
-
-
-
-
 					<!-- Users -->
 					<section id="usersSection" class="mt-4 d-none">
 						<h2>User List</h2>
@@ -213,9 +212,10 @@
 				<p>&copy; 2025 Finance Tracker. All rights reserved.</p>
 			</footer>
 			<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-			<script src="assets/js/app.js"></script>
-			<script src="assets/js/users.js"></script>
-			<script src="assets/js/admin_dashboard.js"></script>
-			<script src="assets/js/script.js"></script>
-</body>
+			<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+			<script src="assets/js/app.js" defer></script>
+			<script src="assets/js/users.js" defer></script>
+			<script src="assets/js/admin_dashboard.js" defer></script>
+			<script src="assets/js/script.js" defer></script>
 </html>

@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,20 +52,24 @@ public class BudgetController {
      */
     @GetMapping("/get")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseDto<?>> getBudgetByMonth(
+    public ResponseEntity<?> getBudgetByMonth(
             @RequestParam("month") int month,
             @RequestParam("year") int year,
             Authentication authentication) {
 
         String userEmail = authentication.getName();
-        Optional<User> user = userService.findByEmail(userEmail);
+        User user = userService.findByEmail(userEmail)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponseDto<>(false, "User not found", null));
+        Optional<Budget> budgetOpt = budgetService.getBudgetByMonthAndYear(user.getId(), month, year);
+
+        if (budgetOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", "No budget found for this month & year"));
         }
 
-        return budgetService.getBudgetByMonth(user.get().getId(), month, year);
+        return ResponseEntity.ok(budgetOpt.get());
     }
+
 
     /**
      * ✅ Admin can fetch all budgets of all users

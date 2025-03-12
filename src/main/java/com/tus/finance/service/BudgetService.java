@@ -15,6 +15,7 @@ import java.util.Optional;
 
 @Service
 public class BudgetService {
+	@Autowired
     private final BudgetRepository budgetRepository;
 
     @Autowired
@@ -55,4 +56,11 @@ public class BudgetService {
     public List<Budget> getAllBudgets() {
         return budgetRepository.findAll();
     }
+    public Optional<Budget> getBudgetByMonthAndYear(Long userId, int month, int year) {
+        return budgetRepository.findByUserIdAndMonthAndYear(userId, month, year);
+    }
+    
+    public Optional<Budget> getCurrentMonthBudget(Long userId) {
+        return budgetRepository.findCurrentMonthBudget(userId);
+}
 }

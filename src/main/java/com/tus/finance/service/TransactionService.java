@@ -74,5 +74,9 @@ public class TransactionService {
                 .filter(t -> t.getUser().getId().equals(userId))
                 .count();
     }
+//    public List<Transaction> getUserTransactionsByMonth(Long userId, int month, int year) {
+//        return transactionRepository.findByUserIdAndMonthAndYear(userId, month, year);
+//    }
+
 
 }

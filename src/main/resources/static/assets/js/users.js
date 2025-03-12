@@ -1,4 +1,13 @@
+Chart.register(ChartDataLabels);
+
+let expenseChartInstance = null;
+let budgetChartInstance = null;
+
 document.addEventListener("DOMContentLoaded", function () {
+	console.log("🚀 DOM fully loaded. Initializing dashboard...");
+	   
+	   // ✅ Ensure dashboard data loads after DOM is ready
+	   loadDashboardData();
     attachTransactionListener(); // Attach event listener for transactions
 });
 
@@ -23,7 +32,7 @@ function attachTransactionListener() {
 						}
 
 						// 🟢 Function to Handle Sidebar Active Highlight
-						function setActiveSidebarLink(activeLink) {
+function setActiveSidebarLink(activeLink) {
 						    // 🔹 Remove active class from all sidebar links
 						    document.querySelectorAll(".sidebar nav ul li a").forEach(link => {
 						        link.classList.remove("active");
@@ -245,7 +254,16 @@ function loadDashboardData() {
 		       document.getElementById("cashInHand").innerText = formatCurrency(data.cash_in_hand);
 		       document.getElementById("transactionCount").innerText = data.num_transactions;
 		       
-			   if (data.expenseBreakdown && data.budget) {
+			   if (data.budget) {
+			               document.getElementById("budgetAmount").innerText = formatCurrency(data.budget.spent + data.budget.remaining);
+			               document.getElementById("remainingBudget").innerText = formatCurrency(data.budget.remaining);
+			           } else {
+			               console.warn("⚠️ No budget data available");
+			               document.getElementById("budgetAmount").innerText = "N/A";
+			               document.getElementById("remainingBudget").innerText = "N/A";
+			           }
+
+			           if (data.expenseBreakdown && data.budget) {
 			               updateCharts(data.expenseBreakdown, data.budget);
 			           } else {
 			               console.warn("⚠️ Missing expense breakdown or budget data.");
@@ -253,18 +271,40 @@ function loadDashboardData() {
 			       })
 			       .catch(error => console.error("❌ Error loading dashboard data:", error));
 			   }
-// 🟢 Function to Update Charts
-function updateCharts(expenseBreakdown, budget) {
-    const ctxExpense = document.getElementById("expenseChart");
-    const ctxBudget = document.getElementById("budgetChart");
 
-    if (!ctxExpense || !ctxBudget) {
-        console.warn("⚠️ Chart elements not found. Skipping update.");
-        return;
+function resetChart(chart) {
+			   		    if (chart) chart.destroy();
+			   		}
+function updateCharts(expenseBreakdown, budget) {
+	
+	const expenseCtx = document.getElementById("expenseChart").getContext("2d");
+	   const budgetCtx = document.getElementById("budgetChart").getContext("2d");
+
+
+
+    // ✅ Reset existing charts before re-creating them
+    resetChart(expenseChartInstance);
+    resetChart(budgetChartInstance);
+
+    // ✅ Validate budget data (Fix total budget calculation)
+    let spentAmount = budget.spent || 0;
+    let remainingAmount = budget.remaining || 0;
+    let totalBudget = spentAmount + remainingAmount;
+
+    // ✅ Update Budget Title if element exists
+    const budgetTitleElement = document.getElementById("budgetTitle");
+    if (budgetTitleElement) {
+        budgetTitleElement.innerText = `Budget: ${totalBudget}`;
+    }
+
+    // ✅ Update Remaining Budget Text
+    const remainingBudgetElement = document.getElementById("remainingBudget");
+    if (remainingBudgetElement) {
+        remainingBudgetElement.innerText = remainingAmount;
     }
 
     // ✅ Expense Breakdown Chart
-    new Chart(ctxExpense, {
+    expenseChartInstance = new Chart(expenseCtx, {
         type: "doughnut",
         data: {
             labels: Object.keys(expenseBreakdown),
@@ -273,26 +313,67 @@ function updateCharts(expenseBreakdown, budget) {
                 backgroundColor: ["#ff6384", "#ff9f40", "#ffcd56", "#4bc0c0"]
             }]
         },
-        options: { responsive: true }
-    });
+		 options: {
+		        responsive: true,
+		        plugins: {
+		            legend: {
+		                position: 'bottom',  // clearly positioned legend at the bottom
+		                labels: {
+		                    color: '#ffffff'
+		                }
+		            },
+					datalabels: {
+					               color: '#fff',
+					               formatter: (value) => value, // Just numeric value without €
+					               font: {
+					                   weight: 'bold'
+					               }
+					           },
+		            tooltip: {
+		                callbacks: {
+		                    label: context => `${context.label}: €${context.raw}`
+		                }
+		            }
+		        }
+		    },
+			plugins: [ChartDataLabels] 
+		});
 
-    // ✅ Budget Chart
-    new Chart(ctxBudget, {
+    // ✅ Budget Chart (Gauge/Meter Chart)
+    budgetChartInstance = new Chart(budgetCtx, {
         type: "doughnut",
         data: {
-               labels: ["Spent (€)", "Balance (€)"],
+            labels: ["Spent", "Balance"],
             datasets: [{
-                data: [budget.spent, budget.remaining],
-                backgroundColor: ["#ff6384", "#4bc0c0"]
+                data: [spentAmount, remainingAmount],
+                backgroundColor: ["#ff6384", "#4bc0c0"],
+                borderWidth: 0
             }]
         },
-        options: { responsive: true }
-    });
-}
+		 options: {
+		        responsive: true,
+		        circumference: 180,
+		        rotation: -90,
+		        cutout: '70%',
+		        plugins: {
+		            legend: { position: "bottom", labels: { color: '#ffffff' } },
+		            datalabels: {
+		                color: '#ffffff',
+		                formatter: (value) => value, // no € symbol
+		                anchor: 'end',
+		                align: 'end',
+		                font: { weight: 'bold' }
+		            }
+		        }
+		    },
+			plugins: [ChartDataLabels]
+		});
+		
 if (document.getElementById("backToDashboard")) {
     document.getElementById("backToDashboard").addEventListener("click", function () {
         document.getElementById("transactionsHistoryContainer").classList.add("d-none");
         document.getElementById("dashboardSummary").classList.remove("d-none");
+		loadDashboardData();   
     });
 }
-
+}
