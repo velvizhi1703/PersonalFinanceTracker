@@ -1,16 +1,24 @@
 package com.tus.finance.dto;
 
-import java.util.List;
+import java.util.Set;
+
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+
+import com.tus.finance.model.Role;
 
 public class UserDTO {
+	@NotEmpty(message = "Name must be provided.")
     private String name;
+	@Email(message = "Email must be valid.")
     private String email;
+	@NotEmpty(message = "Password must be provided")
     private String password;
-    private List<String> roles; // ✅ Roles are necessary for registration
+    private Set<Role> roles; // ✅ Roles are necessary for registration
 
     public UserDTO() {}
 
-    public UserDTO(String name, String email, String password, List<String> roles) {
+    public UserDTO(String name, String email, String password, Set<Role> roles) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -26,6 +34,6 @@ public class UserDTO {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public List<String> getRoles() { return roles; }
-    public void setRoles(List<String> roles) { this.roles = roles; }
+    public Set<Role> getRoles() { return roles; }
+    public void setRoles(Set<Role> roles) { this.roles = roles; }
 }

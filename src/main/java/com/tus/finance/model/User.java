@@ -17,6 +17,9 @@ public class User {
 
     @Column(unique = true, nullable = false)
     private String email;
+    
+    @Column(nullable = false)
+    private String status = "Enabled";
 
     @JsonIgnore  // ✅ Prevents password from appearing in JSON response
     @Column(nullable = false)
@@ -90,6 +93,14 @@ public class User {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+    public String getStatus() {
+        return status;
+    }
+
+    // ✅ Add Setter if needed
+    public void setStatus(String status) {
+        this.status = status;
     }
     public double getTotalIncome() { return totalIncome; }
     public void setTotalIncome(double totalIncome) { this.totalIncome = totalIncome; }

@@ -73,6 +73,17 @@ public class TransactionController {
         }
         return ResponseEntity.ok(transactions);
     }
+    
+    /**
+     * ✅ Admin fetches ALL transactions for ALL users
+     */
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Transaction>> getAllTransactions() {
+        List<Transaction> transactions = transactionService.getAllTransactions(); // Call service layer
+        return ResponseEntity.ok(transactions);
+    }
+
 
     /**
      * ✅ Fetch a specific transaction by its ID (Both admin and user allowed)
@@ -130,10 +141,13 @@ public class TransactionController {
             .orElseThrow(() -> new RuntimeException("User not found"));
 
         // ✅ Fetch user-specific transactions
-        double income = transactionRepository.getTotalIncomeForUser(user.getId());
-        double expense = transactionRepository.getTotalExpenseForUser(user.getId());
+        double income = Optional.ofNullable(transactionRepository.getTotalIncomeForUser(user.getId())).orElse(0.0);
+        double expense = Optional.ofNullable(transactionRepository.getTotalExpenseForUser(user.getId())).orElse(0.0);
         double cashInHand = income - expense;
         int numTransactions = transactionRepository.countByUserId(user.getId());
+        
+        double budgetAmount = income * 0.733; // 73.33% of income
+        double remainingBudget = Math.max(0, budgetAmount - expense);
 
         // ✅ Compute Expense Breakdown by Category
         List<Transaction> transactions = transactionRepository.findByUserId(user.getId());
@@ -144,23 +158,12 @@ public class TransactionController {
                 Collectors.summingDouble(t -> t.getAmount().doubleValue())
             ));
 
-        // ✅ Fetch Budget (If Exists)
-        Optional<Budget> budgetOpt = budgetRepository.findCurrentMonthBudget(user.getId());
-        Budget budget;
-        
-        if (budgetOpt.isEmpty()) {
-            budget = new Budget(user, LocalDate.now().getMonthValue(), LocalDate.now().getYear(), 10000.0); // Default 10000
-            budgetRepository.save(budget);  // ✅ Save to Database
-        } else {
-            budget = budgetOpt.get();
-        }
-
-        // ✅ Populate Budget Details
         Map<String, Double> budgetDetails = new HashMap<>();
+        budgetDetails.put("total_budget", budgetAmount);
         budgetDetails.put("spent", expense);
-        budgetDetails.put("remaining", budget.getAmount() - expense);
+        budgetDetails.put("remaining", remainingBudget);
 
-        // ✅ Update user data
+        // ✅ Update user data (No change)
         user.setTotalIncome(income);
         user.setTotalExpense(expense);
         user.setCashInHand(cashInHand);
@@ -179,7 +182,5 @@ public class TransactionController {
 
         return ResponseEntity.ok(dashboardData);
     }
-
-
 
 }

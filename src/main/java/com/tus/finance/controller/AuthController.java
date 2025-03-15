@@ -2,18 +2,11 @@ package com.tus.finance.controller;
 
 import com.tus.finance.security.JwtUtil;
 import com.tus.finance.dto.LoginRequest;
-import com.tus.finance.model.Role;
+import com.tus.finance.dto.LoginResponseDto;
 import com.tus.finance.model.User;
 import com.tus.finance.repository.UserRepository;
-import com.tus.finance.service.CustomUserDetailsService;
-import com.tus.finance.service.CustomerUserDetails;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,36 +37,40 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             System.out.println("DEBUG: Login attempt - " + request.getEmail());
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-            // ✅ Authenticate the user
+           
+            if ("Disabled".equalsIgnoreCase(user.getStatus())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", " Your account is disabled. Contact Admin!"));
+            }
+          
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
             System.out.println("DEBUG: Authentication success for " + request.getEmail());
 
-            // ✅ Fetch user details
+        
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-            // ✅ Extract roles (assuming a single role per user)
+         
             String role = authentication.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
-                .orElse("ROLE_USER"); // Default role if none found
+                .orElse("ROLE_USER"); 
       
 
             String token = jwtUtil.generateToken(request.getEmail(), authentication.getAuthorities());
 
-            User user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            
+            LoginResponseDto loginResponse = new LoginResponseDto();
+            loginResponse.setUserId(user.getId());
+            loginResponse.setRole(role);
+            loginResponse.setToken(token);
 
-            return ResponseEntity.ok(Map.of(
-                "userId", user.getId(),  // ✅ Include userId
-                "token", token,
-                "role", role,
-                "redirectUrl", role.equals("ROLE_ADMIN") ? "/admin_dashboard.html" : "/user_dashboard.html"
-            ));
-
+            return ResponseEntity.ok(loginResponse);
         } catch (Exception e) {
             System.out.println("ERROR: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

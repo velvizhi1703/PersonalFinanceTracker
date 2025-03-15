@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,6 +21,7 @@ import com.tus.finance.repository.UserRepository;
 import com.tus.finance.service.CustomUserDetailsService;
 
 @Configuration
+@EnableWebSecurity
 
 public class SecurityConfig {
 
@@ -36,19 +38,18 @@ public class SecurityConfig {
         http
             .csrf().disable()
             .authorizeHttpRequests(auth -> auth
-                .antMatchers("/api/auth/**").permitAll()
-                .antMatchers("/").permitAll()
-                .antMatchers("/", "/index.html", "/assets/**").permitAll()
-                .antMatchers("/api/users/register").permitAll()
-                .antMatchers("/api/auth/login").permitAll()
-                .antMatchers("/admin_dashboard.html", "/user_dashboard.html", "/login.html").permitAll()
-                .antMatchers("/api/transactions/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                .antMatchers("/api/dashboard/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                .antMatchers("/api/**").authenticated()
-                // ✅ Spring auto-adds "ROLE_"
-                .antMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN") // ✅ Requires full match
-                .anyRequest().authenticated()
-            )
+            		.antMatchers("/api/auth/**").permitAll()
+                    .antMatchers("/", "/index.html", "/assets/**","/pages/**").permitAll()
+                    .antMatchers("/api/users/register").permitAll()
+                    .antMatchers("/api/auth/login").permitAll()
+                    .antMatchers("/admin_dashboard.html", "/users.html").permitAll()
+                    .antMatchers("/api/transactions/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                    .antMatchers("/api/dashboard/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                    .antMatchers("/api/**").authenticated()
+                    .antMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                    .anyRequest().authenticated()
+                )
+
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

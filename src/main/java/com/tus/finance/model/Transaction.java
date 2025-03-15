@@ -1,6 +1,8 @@
 package com.tus.finance.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,7 +30,12 @@ public class Transaction {
     public String getType() {
         return type.name();  // ✅ Converts Enum to String
     }
-
+    
+    
+    @JsonProperty("userEmail")  // ✅ Ensure email is sent in response
+    public String getUserEmail() {
+        return user.getEmail();
+    }
 
     // Getters and Setters
     public Long getId() { return id; }

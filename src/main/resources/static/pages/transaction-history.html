@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Insert title here</title>
+	 <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+
+    <!-- Personal stylesheet -->
+    <link rel="stylesheet" href="/assets/css/styles.css"/>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<div class="content">
+	<div id="transactionsHistoryContainer">
+	    <h2>Transaction History</h2>
+	    <button id="backToDashboard" class="btn btn-secondary">Back to Dashboard</button>
+	    
+	    <div class="filter-container">
+	        <select id="filterTransactions" class="filter-dropdown">
+	            <option value="all">All</option>
+	            <option value="credit">Credits</option>
+	            <option value="debit">Debits</option>
+	        </select>
+	
+	        
+	        <div class="mb-3">
+	            <h2>Transaction History</h2>
+        		<input type="text" id="searchInput" placeholder="Search transactions..." onkeyup="filterTransactions()">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Amount (€)</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionTableBody"></tbody>
+                </table>`
+	        </div>
+	
+	       
+	        <div id="content"></div>
+	
+	        
+	        <div id="paginationControls">
+	            <button id="prevPage" class="btn btn-primary" onclick="changePage(-1)">Previous</button>
+	            <span id="pageNumber"> Page 1 </span>
+	            <button id="nextPage" class="btn btn-primary" onclick="changePage(1)">Next</button>
+	        </div>
+	    </div>
+	</div>
+</div>
+	<script src="/assets/js/transaction-history.js"></script>
+</body>
+</html>

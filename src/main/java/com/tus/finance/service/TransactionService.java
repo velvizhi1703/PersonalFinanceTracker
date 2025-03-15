@@ -1,5 +1,6 @@
 package com.tus.finance.service;
 
+import com.tus.finance.model.Role;
 import com.tus.finance.model.Transaction;
 import com.tus.finance.model.User;
 import com.tus.finance.repository.TransactionRepository;
@@ -65,18 +66,30 @@ public class TransactionService {
 //                .reduce(BigDecimal.ZERO, BigDecimal::add);
 //    }
 //
-//    public BigDecimal getCashInHand(Long userId) {
-//        return getTotalIncome(userId).subtract(getTotalExpense(userId));
+//    public double getCashInHand(Long userId) {
+//        return getTotalIncomeForUser(userId) - getTotalExpenseForUser(userId);
 //    }
 
+
     public long getTransactionCount(Long userId) {
-        return transactionRepository.findAll().stream()
-                .filter(t -> t.getUser().getId().equals(userId))
-                .count();
+        return transactionRepository.countByUserId(userId);
     }
+
 //    public List<Transaction> getUserTransactionsByMonth(Long userId, int month, int year) {
 //        return transactionRepository.findByUserIdAndMonthAndYear(userId, month, year);
 //    }
-
+//    public double getTotalIncomeForUser(Long userId) {
+//        Double income = transactionRepository.getTotalIncomeForUser(userId);
+//        return (income != null) ? income : 0.0;  // ✅ Ensure 0.0 if `null`
+//    }
+//
+//    public double getTotalExpenseForUser(Long userId) {
+//        Double expense = transactionRepository.getTotalExpenseForUser(userId);
+//        return (expense != null) ? expense : 0.0;  // ✅ Ensure 0.0 if `null`
+//    }
+//
+//    public List<Object[]> getUserSummary() {
+//        return transactionRepository.getAggregatedDataForAllUsers(Role.ROLE_ADMIN);
+//    }
 
 }

@@ -6,8 +6,8 @@ public enum Role implements GrantedAuthority {
 	 ROLE_ADMIN,  // ✅ Now matches database values
 	  ROLE_USER;
 
-    @Override
-    public String getAuthority() {
-        return name();
-    }
+   @Override
+   public String getAuthority() {
+       return name();
+   }
 }

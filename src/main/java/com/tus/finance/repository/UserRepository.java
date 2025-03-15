@@ -29,6 +29,17 @@ public interface UserRepository extends CrudRepository<User, Long> {
     @Query("SELECT COUNT(t) FROM Transaction t WHERE t.user.id = :userId")
     long getTransactionCountByUserId(@Param("userId") Long userId);
 
+ // ✅ Fetch total income across all users
+    @Query("SELECT COALESCE(SUM(t.amount), 0.0) FROM Transaction t WHERE t.type = 'CREDIT'")
+    Double getTotalIncomeForAllUsers();
+
+    // ✅ Fetch total expense across all users
+    @Query("SELECT COALESCE(SUM(t.amount), 0.0) FROM Transaction t WHERE t.type = 'DEBIT'")
+    Double getTotalExpenseForAllUsers();
+
+    // ✅ Count all transactions in the system
+    @Query("SELECT COUNT(t) FROM Transaction t")
+    int countAllTransactions();
 
 
     @Query("SELECT u.id, u.name, u.email, " +
