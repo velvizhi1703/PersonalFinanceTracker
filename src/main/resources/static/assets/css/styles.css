@@ -519,4 +519,77 @@ button:hover {
     text-align: center;
     margin-top: 10px;
 }
+.transaction-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    margin: auto;
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+input, select, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+#message {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: bold;
+}
+.transaction-container button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.transaction-container button:hover {
+    background-color: #0056b3;
+}
+
+/* Center the transaction table */
+/* Make the table container full width */
+.table-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 20px;
+}
+
+/* Make the table stretch fully */
+#transactionTable {
+    width: 100%;
+    border-collapse: collapse; /* Remove extra spacing */
+}
+
+/* Center text inside table */
+#transactionTable th, #transactionTable td {
+    text-align: center;
+}
+
+/* Adjust search input width */
+#searchInput {
+    width: 300px; /* Reduce width */
+    margin-bottom: 15px;
+}
+
+
 }

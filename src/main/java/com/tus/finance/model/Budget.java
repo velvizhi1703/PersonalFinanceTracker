@@ -32,6 +32,10 @@ public class Budget {
 
     @Column(nullable = false)
     private double amount;  // Budgeted amount
+    
+    private double spent;  // ✅ Amount spent
+
+    private double remaining;
 
     // ✅ Constructors
     public Budget() {}
@@ -42,7 +46,21 @@ public class Budget {
         this.year = year;
         this.amount = amount;
     }
+    public double getSpent() {  // ✅ Getter for spent
+        return spent;
+    }
 
+    public void setSpent(double spent) {  // ✅ Setter for spent
+        this.spent = spent;
+    }
+
+    public double getRemaining() {  // ✅ Getter for remaining
+        return remaining;
+    }
+
+    public void setRemaining(double remaining) {  // ✅ Setter for remaining
+        this.remaining = remaining;
+    }
     // ✅ Getters & Setters
     public Long getId() {
         return id;

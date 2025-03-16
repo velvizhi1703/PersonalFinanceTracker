@@ -18,7 +18,7 @@ $(document).ready(() => {
    	// Handle "New Transaction" Click
 	$("#newTransactionLink").off().on("click", (event) => {
        event.preventDefault();
-	   Router.loadPage("new_transaction");
+	   Router.loadPage("new-transaction");
    	});
    
    	// Handle "Logout" Click

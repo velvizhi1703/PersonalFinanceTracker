@@ -1,33 +1,37 @@
 package com.tus.finance.controller;
 
-import com.tus.finance.model.Budget;
 import com.tus.finance.model.Transaction;
 import com.tus.finance.model.User;
+import com.tus.finance.model.TransactionType;
 import com.tus.finance.repository.BudgetRepository;
 import com.tus.finance.repository.TransactionRepository;
 import com.tus.finance.repository.UserRepository;
 import com.tus.finance.security.JwtUtil;
 import com.tus.finance.service.TransactionService;
 import com.tus.finance.service.UserService;
-
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 @RestController
 @RequestMapping("/api/transactions")
 public class TransactionController {
+	  private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
+
     private final TransactionService transactionService;
     private final UserService userService;
     private final UserRepository userRepository;
@@ -50,38 +54,77 @@ public class TransactionController {
      */
     @GetMapping("/user")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<Transaction>> getUserTransactions(Authentication authentication) {
+    public ResponseEntity<CollectionModel<EntityModel<Transaction>>> getUserTransactions(Authentication authentication) {
         String userEmail = authentication.getName();
-        Optional<User> user = userService.findByEmail(userEmail); // ✅ Now userService is available
+        Optional<User> user = userService.findByEmail(userEmail);
 
         if (user.isPresent()) {
             List<Transaction> transactions = transactionService.getTransactionsByUserId(user.get().getId());
-            return ResponseEntity.ok(transactions);
+
+            List<EntityModel<Transaction>> transactionResources = transactions.stream()
+            	    .map(transaction -> {
+            	        EntityModel<Transaction> entityModel = EntityModel.of(transaction,
+            	            linkTo(methodOn(TransactionController.class)
+            	                .getTransactionById(transaction.getId(), authentication)).withSelfRel(),
+            	            linkTo(methodOn(TransactionController.class)
+            	                .getUserTransactions(authentication)).withRel("user-transactions")
+            	        );
+            	        return entityModel;
+            	    })
+            	    .collect(Collectors.toList());
+
+
+            return ResponseEntity.ok(CollectionModel.of(transactionResources,
+                linkTo(methodOn(TransactionController.class).getUserTransactions(authentication)).withSelfRel()
+            ));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+
     /**
      * ✅ Admin fetches transactions for a specific user ID
      */
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Transaction>> getTransactionsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<CollectionModel<EntityModel<Transaction>>> getTransactionsByUserId(@PathVariable Long userId) {
         List<Transaction> transactions = transactionService.getTransactionsByUserId(userId);
+        
         if (transactions.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(transactions);
+
+        List<EntityModel<Transaction>> transactionResources = transactions.stream()
+            .map(transaction -> EntityModel.of(transaction,
+                linkTo(methodOn(TransactionController.class).getTransactionsByUserId(userId)).withSelfRel(),
+                linkTo(methodOn(TransactionController.class).getAllTransactions()).withRel("all-transactions")))
+            .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<Transaction>> collectionModel = CollectionModel.of(transactionResources,
+                linkTo(methodOn(TransactionController.class).getTransactionsByUserId(userId)).withSelfRel());
+
+        return ResponseEntity.ok(collectionModel);
     }
-    
+
     /**
      * ✅ Admin fetches ALL transactions for ALL users
      */
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Transaction>> getAllTransactions() {
-        List<Transaction> transactions = transactionService.getAllTransactions(); // Call service layer
-        return ResponseEntity.ok(transactions);
+    public ResponseEntity<CollectionModel<EntityModel<Transaction>>> getAllTransactions() {
+        List<Transaction> transactions = transactionService.getAllTransactions();
+
+        List<EntityModel<Transaction>> transactionResources = transactions.stream()
+                .map(transaction -> EntityModel.of(transaction,
+                        linkTo(methodOn(TransactionController.class).getTransactionById(transaction.getId(), null)).withSelfRel(),
+                        linkTo(methodOn(TransactionController.class).getAllTransactions()).withRel("all-transactions")
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(CollectionModel.of(transactionResources,
+                linkTo(methodOn(TransactionController.class).getAllTransactions()).withSelfRel()
+        ));
     }
 
 
@@ -112,30 +155,53 @@ public class TransactionController {
      */
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Transaction> addTransaction(@RequestBody Transaction transaction) {
+    public ResponseEntity<EntityModel<Transaction>> addTransaction(@RequestBody Transaction transaction, Authentication authentication) {
         if (transaction == null) {
             return ResponseEntity.badRequest().body(null);
         }
-        Transaction savedTransaction = transactionService.addTransaction(transaction);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
+
+        String userEmail = authentication.getName();
+        Optional<User> user = userService.findByEmail(userEmail);
+
+        if (user.isPresent()) {
+            transaction.setUser(user.get());
+            Transaction savedTransaction = transactionService.addTransaction(transaction);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(EntityModel.of(savedTransaction,
+                    linkTo(methodOn(TransactionController.class).getTransactionById(savedTransaction.getId(), authentication)).withSelfRel(),
+                    linkTo(methodOn(TransactionController.class).getTransactionsByUserId(user.get().getId())).withRel("user-transactions")
+            ));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
+
 
     /**
      * ✅ Delete a transaction (Only Admin can delete transactions)
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
-        transactionService.deleteTransaction(id);
-        return ResponseEntity.noContent().build();
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<?> deleteTransaction(@PathVariable Long id) {
+        Optional<Transaction> transactionOpt = transactionService.getTransactionById(id);
+
+        if (transactionOpt.isPresent()) {
+            transactionService.deleteTransaction(id);
+            return ResponseEntity.ok(EntityModel.of(transactionOpt.get(),
+                    linkTo(methodOn(TransactionController.class).getAllTransactions()).withRel("all-transactions")
+            ));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ Transaction not found.");
+        }
     }
+
 
     /**
      * ✅ Admin sees ALL transactions, while Users see only their own
      */
     @GetMapping("/dashboard")
-    @PreAuthorize("hasRole('USER')") // ✅ Restrict to USER role
-    public ResponseEntity<?> getDashboardStats(@RequestHeader("Authorization") String token) {
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<EntityModel<Map<String, Object>>> getDashboardStats(@RequestHeader("Authorization") String token) {
         String userEmail = jwtUtil.extractUsername(token.substring(7)); // ✅ Extract email
         User user = userRepository.findByEmail(userEmail)
             .orElseThrow(() -> new RuntimeException("User not found"));
@@ -145,30 +211,27 @@ public class TransactionController {
         double expense = Optional.ofNullable(transactionRepository.getTotalExpenseForUser(user.getId())).orElse(0.0);
         double cashInHand = income - expense;
         int numTransactions = transactionRepository.countByUserId(user.getId());
-        
-        double budgetAmount = income * 0.733; // 73.33% of income
-        double remainingBudget = Math.max(0, budgetAmount - expense);
+
+        double budgetPercentage = 0.75;  // Example: 75% of income
+        double budgetAmount = income * budgetPercentage;
+        double remainingBudget = budgetAmount - expense; 
+        double overBudget = Math.max(0, expense - budgetAmount);
 
         // ✅ Compute Expense Breakdown by Category
         List<Transaction> transactions = transactionRepository.findByUserId(user.getId());
         Map<String, Double> expenseBreakdown = transactions.stream()
-            .filter(t -> "DEBIT".equalsIgnoreCase(t.getType())) // Only Debit Transactions
+            .filter(t -> "DEBIT".equalsIgnoreCase(t.getType()))
             .collect(Collectors.groupingBy(
                 Transaction::getCategory, 
                 Collectors.summingDouble(t -> t.getAmount().doubleValue())
             ));
 
+        // ✅ Prepare Budget Details
         Map<String, Double> budgetDetails = new HashMap<>();
         budgetDetails.put("total_budget", budgetAmount);
         budgetDetails.put("spent", expense);
         budgetDetails.put("remaining", remainingBudget);
-
-        // ✅ Update user data (No change)
-        user.setTotalIncome(income);
-        user.setTotalExpense(expense);
-        user.setCashInHand(cashInHand);
-        user.setNumTransactions(numTransactions);
-        userRepository.save(user); // Save changes
+        budgetDetails.put("overBudget", overBudget); 
 
         // ✅ Prepare API Response (With Charts Data)
         Map<String, Object> dashboardData = Map.of(
@@ -176,11 +239,17 @@ public class TransactionController {
             "expense", expense,
             "cash_in_hand", cashInHand,
             "num_transactions", numTransactions,
-            "expenseBreakdown", expenseBreakdown,  // ✅ Required for Pie Chart
-            "budget", budgetDetails                 // ✅ Required for Budget Meter
+            "expenseBreakdown", expenseBreakdown,
+            "budget", budgetDetails
         );
 
-        return ResponseEntity.ok(dashboardData);
-    }
+        // ✅ Add HATEOAS Links
+        EntityModel<Map<String, Object>> entityModel = EntityModel.of(dashboardData,
+            linkTo(methodOn(TransactionController.class).getDashboardStats(token)).withSelfRel(),
+            linkTo(methodOn(TransactionController.class).getUserTransactions(null)).withRel("user-transactions"),
+            linkTo(methodOn(TransactionController.class).getTransactionsByUserId(user.getId())).withRel("user-all-transactions")
+        );
 
+        return ResponseEntity.ok(entityModel);
+    }
 }

@@ -1,21 +1,24 @@
 package com.tus.finance.dto;
-
+import org.springframework.hateoas.RepresentationModel;
+import com.tus.finance.model.User; 
+import org.springframework.hateoas.server.core.Relation;
 import java.util.Set;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
 import com.tus.finance.model.Role;
-
-public class UserDTO {
+@Relation(collectionRelation = "users")
+public class UserDTO extends RepresentationModel<UserDTO> {
 	@NotEmpty(message = "Name must be provided.")
     private String name;
 	@Email(message = "Email must be valid.")
     private String email;
 	@NotEmpty(message = "Password must be provided")
     private String password;
-    private Set<Role> roles; // ✅ Roles are necessary for registration
-
+    private Set<Role> roles;
+    private Long id;// ✅ Roles are necessary for registration
+    private String status;
     public UserDTO() {}
 
     public UserDTO(String name, String email, String password, Set<Role> roles) {
@@ -23,6 +26,13 @@ public class UserDTO {
         this.email = email;
         this.password = password;
         this.roles = roles;
+    }
+    public UserDTO(User user) {
+        this.name = user.getName();
+        this.email = user.getEmail();
+        this.status = user.getStatus(); // Be cautious: Do not expose passwords in DTOs!
+        this.roles = user.getRoles();
+        this.id = user.getId();
     }
 
     public String getName() { return name; }

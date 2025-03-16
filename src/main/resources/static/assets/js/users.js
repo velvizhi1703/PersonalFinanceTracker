@@ -1,8 +1,41 @@
 $(document).ready(() => {
     console.log("🚀 User Dashboard Script Loaded");
+
+	loadUserData();
     loadDashboardData();
 });
+function loadUserData() {
+    console.log("📥 Fetching user data...");
+    const token = localStorage.getItem("token");
 
+    if (!token) {
+        console.warn("⚠️ No token found! Redirecting to login...");
+        localStorage.clear();
+        window.location.hash = "#login";
+        return;
+    }
+
+    $.ajax({
+        url: "http://localhost:9091/api/users/me",
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+        success: (data) => {
+            if (!data || !data.name || !data.email) {
+                console.error("❌ Invalid User Data");
+                return;
+            }
+
+            console.log("✅ User Data:", data);
+
+            // ✅ Dynamically update the username and email in the UI
+            $("#userName").text(data.name);
+            $("#userEmail").text(`(${data.email})`);
+        },
+        error: (error) => {
+            console.error("❌ Error fetching user data:", error);
+        }
+    });
+}
 function loadDashboardData() {
     console.log("📥 Loading user dashboard data...");
     const token = localStorage.getItem("token");
@@ -94,16 +127,74 @@ function createExpenseChart(expenseBreakdown) {
 
 // ✅ Function to update the Budget Meter
 function updateBudgetMeter(spent, remaining) {
-    const totalBudget = spent + remaining; // Total budget is the sum of spent and remaining
-    const spentPercentage = (spent / totalBudget) * 100; // Calculate percentage spent
+    const ctx = document.getElementById("budgetChart");
 
-    let budgetMeter = document.getElementById("budgetMeter");
-    if (!budgetMeter) {
-        console.error("❌ Budget meter element not found!");
+    if (!ctx) {
+        console.error("❌ Budget chart element not found!");
         return;
     }
 
-    budgetMeter.style.width = `${spentPercentage}%`;
-    budgetMeter.style.backgroundColor = spentPercentage > 80 ? "#FF5733" : "#33FF57";
-    budgetMeter.innerText = `${spentPercentage.toFixed(2)}% Spent`;
+    // Destroy previous chart instance if exists
+    if (window.budgetChartInstance) {
+        window.budgetChartInstance.destroy();
+    }
+
+    // Create a Doughnut Chart (Semi-circle meter)
+    window.budgetChartInstance = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Spent", "Remaining"],
+            datasets: [{
+                data: [spent, remaining],
+                backgroundColor: ["#FF5733", "#33FF57"], // Red for spent, green for remaining
+                borderWidth: 0
+            }]
+        },
+        options: {
+            rotation: -90, // Start from the top
+            circumference: 180, // Show as semi-circle
+            cutout: "70%", // Adjust thickness
+            plugins: {
+                legend: {
+                    display: true,
+                    position: "bottom",
+                    labels: {
+                        color: "#fff",
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return `€ ${tooltipItem.raw.toFixed(2)}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // ✅ Update Budget Text
+    document.getElementById("remainingBudget").innerText = remaining < 0 
+        ? `Overbudget by €${Math.abs(remaining).toFixed(2)}` 
+        : `€ ${remaining.toFixed(2)}`;
 }
+document.getElementById("editBudget").addEventListener("click", function () {
+    let newBudget = prompt("Enter your new budget amount:");
+
+    if (newBudget && !isNaN(newBudget)) {
+        newBudget = parseFloat(newBudget);
+
+        // ✅ Update Budget UI
+        document.getElementById("budgetAmount").innerText = `€ ${newBudget.toFixed(2)}`;
+
+        // ✅ Fetch existing spent amount
+        let spent = window.budgetChartInstance?.data.datasets[0].data[0] || 0;
+        let remaining = newBudget - spent;
+
+        // ✅ Update the Budget Meter with new budget values
+        updateBudgetMeter(spent, remaining);
+    }
+});

@@ -29,8 +29,10 @@
 			<header>
 				<h1>User Dashboard</h1>
 				<div class="profile">
-					<i class="fa fa-user"></i> <span id="userName">John Doe</span>
-				</div>
+    <i class="fa fa-user"></i> 
+    <span id="userName"></span>  <!-- Make this empty initially -->
+    <span id="userEmail"></span>  <!-- Add this for the email -->
+</div>
 			</header>
 
 
@@ -70,11 +72,13 @@
 					<div class="chart-box">
 						<h2>
 							Budget: <span id="budgetAmount">Loading...</span>
+							    <button id="editBudget" class="btn btn-primary">Edit</button>
 						</h2>
 						<p>
 							Remaining: <span id="remainingBudget">Loading...</span>
 						</p>
-						<canvas id="budgetChart"></canvas>
+						<canvas id="budgetChart" width="300" height="150"></canvas>
+
 						<div class="meter-container">
 							<div id="budgetMeter" class="meter-bar"></div>
 						</div>

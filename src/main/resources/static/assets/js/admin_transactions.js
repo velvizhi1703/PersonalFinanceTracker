@@ -15,6 +15,7 @@ $(document).ready(function () {
         console.warn("No stored role! Fetching from API...");
         fetchUserDetails();
     }
+	
 
     if (userRole !== "ROLE_ADMIN") {
         console.warn("Unauthorized! Redirecting non-admin to Users Page...");
@@ -44,48 +45,57 @@ function loadAdminTransactions() {
         },
         success: function (data) {
             console.log("✅ Admin Transactions Fetched:", data);
-            displayAdminTransactions(data);
-        },
-        error: function (error) {
-            console.error("🚨 Error fetching transactions:", error);
-        }
-    });
-}
+			 // ✅ Extract transactions from HATEOAS response
+			            const transactions = data._embedded?.transactionList || [];
+
+			            if (transactions.length === 0) {
+			                console.warn("🚨 No transactions found!");
+			            }
+
+			            displayAdminTransactions(transactions);
+			        },
+			        error: function (error) {
+			            console.error("🚨 Error fetching transactions:", error);
+			        }
+			    });
+			}
 
 
-function displayAdminTransactions(data) {
-    console.log("✅ Transactions Data Received:", data);
+			function displayAdminTransactions(transactions) {
+			    console.log("✅ Transactions Data Received:", transactions);
 
-    const transactionsTableBody = $("#transactionsTableBody");
-    if (!transactionsTableBody.length) {
-        console.error("❌ transactionsTableBody not found in the HTML!");
-        return;
-    }
+			    const transactionsContainer = $("#transactionsContainer");
+			    const transactionsTableBody = $("#transactionsTableBody");
 
-    transactionsTableBody.html(""); // Clear existing table data
+			    if (!transactionsTableBody.length) {
+			        console.error("❌ transactionsTableBody not found in the HTML!");
+			        return;
+			    }
 
-    if (!Array.isArray(data) || data.length === 0) {
-        console.warn("🚨 No transactions found!");
-        transactionsTableBody.html("<tr><td colspan='6'>No transactions available</td></tr>");
-        return;
-    }
+			    transactionsTableBody.html(""); // Clear existing table data
 
-    console.log(`🔹 Populating table with ${data.length} transactions...`);
+			    if (!Array.isArray(transactions) || transactions.length === 0) {
+			        console.warn("🚨 No transactions found!");
+			        transactionsTableBody.html("<tr><td colspan='6'>No transactions available</td></tr>");
+			    } else {
+			        console.log(`🔹 Populating table with ${transactions.length} transactions...`);
 
-    const rows = data.map(transaction => `
-        <tr>
-            <td>${transaction.id}</td>
-            <td>${transaction.userEmail || "N/A"}</td>
-            <td>${transaction.category || "No Category"}</td>
-            <td>${transaction.date ? new Date(transaction.date).toLocaleDateString() : "N/A"}</td>
-            <td>${transaction.type || "N/A"}</td>
-            <td>Rs. ${transaction.amount || 0}</td>
-        </tr>
-    `).join('');
+			        const rows = transactions.map(transaction => `
+			            <tr>
+			                <td>${transaction.id}</td>
+			                <td>${transaction.userEmail || "N/A"}</td>
+			                <td>${transaction.category || "No Category"}</td>
+			                <td>${transaction.date ? new Date(transaction.date).toLocaleDateString() : "N/A"}</td>
+			                <td>${transaction.type || "N/A"}</td>
+			                <td>Rs. ${transaction.amount || 0}</td>
+			            </tr>
+			        `).join('');
 
-    transactionsTableBody.html(rows);
-    console.log("✅ Transactions Table Updated");
-	
-	$("#transactionsContainer").removeClass("d-none").show();
-	 console.log("✅ Table is now visible!");
-}
+			        transactionsTableBody.html(rows);
+			        console.log("✅ Transactions Table Updated");
+			    }
+
+			    // ✅ Force the table section to be visible
+			    transactionsContainer.removeClass("d-none").css("display", "block");
+			    console.log("✅ Table is now visible!");
+			}

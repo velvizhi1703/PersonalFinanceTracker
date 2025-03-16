@@ -2,9 +2,12 @@ package com.tus.finance.dto;
 
 import java.util.List;
 
+import org.springframework.hateoas.RepresentationModel;
+import org.springframework.hateoas.server.core.Relation;
 
 
-public class UserAllDTO {
+@Relation(collectionRelation = "users")
+public class UserAllDTO extends RepresentationModel<UserAllDTO> {
     private Long id;
     private String name;
     private String email;

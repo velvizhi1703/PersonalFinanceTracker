@@ -19,33 +19,39 @@
 <div class="content">
 	<div id="transactionsHistoryContainer">
 	    <h2>Transaction History</h2>
-	    <button id="backToDashboard" class="btn btn-secondary">Back to Dashboard</button>
 	    
 	    <div class="filter-container">
 	        <select id="filterTransactions" class="filter-dropdown">
 	            <option value="all">All</option>
-	            <option value="credit">Credits</option>
-	            <option value="debit">Debits</option>
+	            <option value="credit">Credit</option>
+	            <option value="debit">Debit</option>
 	        </select>
 	
-	        
-	        <div class="mb-3">
-	            <h2>Transaction History</h2>
-        		<input type="text" id="searchInput" placeholder="Search transactions..." onkeyup="filterTransactions()">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Type</th>
-                            <th>Amount (€)</th>
-                            <th>Category</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactionTableBody"></tbody>
-                </table>`
-	        </div>
-	
+	  <div class="container-fluid">
+    <div class="table-container">
+        <h2 class="text-center">Transaction History</h2>
+
+        <input type="text" id="searchInput" class="form-control mx-auto" 
+               placeholder="Search transactions..." style="max-width: 300px;">
+
+        <div class="table-responsive">
+            <table class="table table-bordered text-center" id="transactionTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>Amount (€)</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
 	       
 	        <div id="content"></div>
 	

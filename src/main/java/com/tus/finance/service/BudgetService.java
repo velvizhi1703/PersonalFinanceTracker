@@ -5,8 +5,10 @@ import com.tus.finance.dto.BudgetRequest;
 import com.tus.finance.model.Budget;
 import com.tus.finance.model.User;
 import com.tus.finance.repository.BudgetRepository;
+import com.tus.finance.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -17,25 +19,48 @@ import java.util.Optional;
 public class BudgetService {
 	@Autowired
     private final BudgetRepository budgetRepository;
+	private final UserRepository userRepository;
 
     @Autowired
-    public BudgetService(BudgetRepository budgetRepository) {
+    public BudgetService(BudgetRepository budgetRepository,UserRepository userRepository) {
         this.budgetRepository = budgetRepository;
+        this.userRepository = userRepository;
     }
 
     /**
      * ✅ Creates a new budget entry
      */
-    public ResponseEntity<ApiResponseDto<?>> createBudget(Long userId, BudgetRequest budgetRequest) {
-        Budget budget = new Budget();
-        budget.setId(userId);
-        budget.setMonth(budgetRequest.getMonth());
-        budget.setYear(budgetRequest.getYear());
-        budget.setAmount(budgetRequest.getAmount());
+    public ResponseEntity<ApiResponseDto<?>> createBudget(Long userId, BudgetRequest request) {
+        Optional<User> userOpt = userRepository.findById(userId);
 
-        budgetRepository.save(budget);
-        return ResponseEntity.ok(new ApiResponseDto<>(true, "Budget created successfully!", budget));
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponseDto<>(false, "User not found", null));
+        }
+
+        User user = userOpt.get();
+
+        Optional<Budget> existingBudget = budgetRepository.findByUserIdAndMonthAndYear(userId, request.getMonth(), request.getYear());
+
+        if (existingBudget.isPresent()) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponseDto<>(false, "Budget already exists", null));
+        }
+
+        Budget newBudget = new Budget();
+        newBudget.setUser(user);  // ✅ Set User object
+        newBudget.setAmount(request.getAmount());
+        newBudget.setSpent(0);
+        newBudget.setRemaining(request.getAmount());
+        newBudget.setMonth(request.getMonth());
+        newBudget.setYear(request.getYear());
+
+        budgetRepository.save(newBudget);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponseDto<>(true, "Budget created successfully", newBudget));
     }
+
 
     /**
      * ✅ Gets a budget for a given user, month, and year

@@ -43,7 +43,7 @@ public class SecurityConfig {
                     .antMatchers("/api/users/register").permitAll()
                     .antMatchers("/api/auth/login").permitAll()
                     .antMatchers("/admin_dashboard.html", "/users.html").permitAll()
-                    .antMatchers("/api/transactions/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                    .antMatchers("/api/transactions/**").authenticated()
                     .antMatchers("/api/dashboard/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                     .antMatchers("/api/**").authenticated()
                     .antMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")

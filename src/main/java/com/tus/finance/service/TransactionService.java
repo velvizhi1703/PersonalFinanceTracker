@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,8 +30,12 @@ public class TransactionService {
         return transactionRepository.findById(id);
     }
     public List<Transaction> getTransactionsByUserId(Long userId) {
-        return transactionRepository.findByUserId(userId);
+        List<Transaction> transactions = transactionRepository.findByUserId(userId);
+        
+        // ✅ If only one transaction exists, ensure it's still a list
+        return transactions != null ? transactions : new ArrayList<>();
     }
+
 
 
     public Transaction addTransaction(Transaction transaction) {

@@ -1,91 +1,117 @@
-const Router = {
+// Ensure Router is only defined once globally
+window.Router = window.Router || {
     paths: {
         "login": "/pages/login.html",
         "register": "/pages/register.html",
         "users": "/pages/users.html",
         "admin_transactions": "/pages/admin_transactions.html",
         "transaction-history": "/pages/transaction-history.html",
-		"admin_users":"/pages/admin_users.html"
+        "admin_users": "/pages/admin_users.html",
+        "new-transaction": "/pages/new-transaction.html",
     },
-	
-	
 
     init: function () {
-		console.log("Router Initialized!", this.paths);
+        if (window.routerInitialized) {
+            console.log("⚠ Router already initialized, skipping...");
+            return;
+        }
+        window.routerInitialized = true;
+        console.log("✅ Router Initialized!", this.paths);
+        
         this.handleNavigation();
         window.addEventListener("hashchange", this.handleNavigation);
+        window.onpopstate = this.handleNavigation; // Handle browser back/forward
     },
 
     handleNavigation: function () {
         const page = location.hash.replace("#", "") || "login";
-        console.log(`Navigating to: ${page}`);
-		if (window.lastPage === page) {
-		           console.log("⚠️ Same page reload detected. Skipping...");
-		           return; // ✅ Prevent duplicate navigation
-		       }
-		       window.lastPage = page; 
-			   history.pushState(null, "", `#${page}`);
+        console.log("🔍 Current Hash:", location.hash);
+        console.log("🔍 Extracted Page:", page);
+        console.log("🔍 Available Paths:", Router.paths);
+
+        if (!Router.paths[page]) {
+            console.error(`❌ Page "${page}" not found in paths.`);
+            return;
+        }
+
+        if (window.lastPage === page) {
+            console.log("⚠️ Same page reload detected. Skipping...");
+            return;
+        }
+
+        window.lastPage = page;
+
+        // ✅ Update browser history without causing a reload
+        if (window.history.state !== page) {
+            history.pushState(page, "", `#${page}`);
+        }
+
         Router.loadPage(page);
     },
 
     loadPage: function (page) {
         if (!Router.paths[page]) {
-            console.error(`Page "${page}" not found in paths.`);
+            console.error(`❌ Page "${page}" not found in paths.`);
             return;
         }
 
-        // Load the main content
-		if (page.startsWith("admin_")) {
-		    console.log("✅ Loading admin sidebar...");
-		    if ($("#sidebar").attr("data-type") !== "admin") {  // ✅ Only reload if not already admin sidebar
-		        $("#sidebar").attr("data-type", "admin").load("/pages/admin_sidebar.html", function () {
-		            console.log("✅ Admin sidebar loaded!");
-		            $.getScript("/assets/js/admin_sidebar.js");
-		        });
-		    }
-		} else if (page !== "login" && page !== "register") {
-		    console.log("✅ Loading user sidebar...");
-		    if ($("#sidebar").attr("data-type") !== "user") {  // ✅ Only reload if not already user sidebar
-		        $("#sidebar").attr("data-type", "user").load("/pages/sidebar.html", function () {
-		            console.log("✅ User sidebar loaded!");
-		            $.getScript("/assets/js/sidebar.js");
-		        });
-		    }
-		}
+        // ✅ Load Sidebar Only Once After Login
+        if (!window.sidebarLoaded && page !== "login" && page !== "register") {
+            console.log("✅ Loading Sidebar...");
+            let sidebarPath = page.startsWith("admin_") ? "/pages/admin_sidebar.html" : "/pages/sidebar.html";
+            let sidebarScript = page.startsWith("admin_") ? "/assets/js/admin_sidebar.js" : "/assets/js/sidebar.js";
 
-		      // Show/hide sidebar and footer based on the page
-		      if (page === "login" || page === "register") {
-		          $("#sidebar, #footer").hide();
-		      } else {
-		          $("#sidebar, #footer").show();
-		      }
+            $("#sidebar").load(sidebarPath, function () {
+                console.log("✅ Sidebar Loaded!");
+                $.getScript(sidebarScript, function () {
+                    console.log("✅ Sidebar JS Executed!");
+                    window.sidebarLoaded = true; // Prevent sidebar from reloading
+                });
+            });
+        } else {
+            console.log("⚡ Sidebar Already Loaded, Skipping...");
+        }
 
-		      // ✅ Only Load Page Content if NOT Sidebar or Footer
-			  if ($("#content").attr("data-loaded") !== page) {
-			            Router.loadContent(page, "content");
-			            $("#content").attr("data-loaded", page);
-			        }
-			    },
-         
-		 
+        // ✅ Hide Sidebar/Footer on Login/Register
+        if (page === "login" || page === "register") {
+            $("#sidebar, #footer").hide();
+        } else {
+            $("#sidebar, #footer").show();
+        }
 
-		    loadContent: function (page, targetId) {
-		        if (!Router.paths[page]) return;
-				$(`#${targetId}`).html("");
-		        $.get(Router.paths[page], function (responseText) {
-		            const parser = new DOMParser();
-		            const contentDoc = parser.parseFromString(responseText, "text/html");
-		            const bodyContent = $(contentDoc).find("body").html();
+        // ✅ Load Main Content Dynamically
+        if ($("#content").attr("data-loaded") !== page) {
+            Router.loadContent(page, "content");
+            $("#content").attr("data-loaded", page);
+        }
+    },
 
-		            // Set loaded content
-		            $(`#${targetId}`).html(bodyContent);
-		        });
-		    }
-		};
+    loadContent: function (page, targetId) {
+        if (!Router.paths[page]) return;
+        $(`#${targetId}`).html("");
+        $.get(Router.paths[page], function (responseText) {
+            const parser = new DOMParser();
+            const contentDoc = parser.parseFromString(responseText, "text/html");
+            const bodyContent = $(contentDoc).find("body").html();
 
-		$(document).ready(() => {
-			if (!window.routerInitialized) {
-			       window.routerInitialized = true; // ✅ Prevent multiple Router.init() calls
-			       Router.init();
-			   }
-		});
+            $(`#${targetId}`).html(bodyContent);
+        });
+    }
+};
+
+// ✅ Ensure Router.init() runs only once
+$(document).ready(() => {
+    if (!window.routerInitialized) {
+        console.log("✅ Checking Router paths before init:", Router.paths);
+        Router.init();
+    }
+});
+
+// ✅ Ensure Sidebar Links Work Properly (SPA Navigation)
+$(document).on("click", ".nav-link", function (event) {
+    event.preventDefault();
+    let page = $(this).attr("href").substring(1); // Remove #
+    console.log("🔹 Navigating to:", page);
+    history.pushState(page, "", `#${page}`);
+    Router.handleNavigation();
+});
