@@ -6,15 +6,11 @@ import com.tus.finance.model.Budget;
 import com.tus.finance.model.User;
 import com.tus.finance.service.BudgetService;
 import com.tus.finance.service.UserService;
-
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -25,15 +21,10 @@ public class BudgetController {
     private final BudgetService budgetService;
     private final UserService userService;
 
-    @Autowired
     public BudgetController(BudgetService budgetService, UserService userService) {
         this.budgetService = budgetService;
         this.userService = userService;
     }
-
-    /**
-     * ✅ Allow users to create a budget for a specific month & year
-     */
     @PostMapping("/create")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponseDto<?>> createBudget(@RequestBody BudgetRequest budgetRequest, Authentication authentication) {
@@ -46,10 +37,6 @@ public class BudgetController {
 
         return budgetService.createBudget(user.get().getId(), budgetRequest);
     }
-
-    /**
-     * ✅ Users can fetch their budget for a specific month & year
-     */
     @GetMapping("/get")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> getBudgetByMonth(
@@ -70,10 +57,6 @@ public class BudgetController {
         return ResponseEntity.ok(budgetOpt.get());
     }
 
-
-    /**
-     * ✅ Admin can fetch all budgets of all users
-     */
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Budget>> getAllBudgets() {

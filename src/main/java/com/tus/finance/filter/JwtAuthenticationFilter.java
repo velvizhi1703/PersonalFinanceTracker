@@ -20,57 +20,50 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
+	private final JwtUtil jwtUtil;
+	private final UserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
-        this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
-    }
+	public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+		this.jwtUtil = jwtUtil;
+		this.userDetailsService = userDetailsService;
+	}
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
 
-        // Get Authorization Header
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+		String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+		String token = authHeader.substring(7);
+		System.out.println("Extracted Token: " + token);
 
-        // Extract JWT Token
-        String token = authHeader.substring(7);
-        System.out.println("🔑 Extracted Token: " + token);
+		try {
+			String username = jwtUtil.extractUsername(token);
+			System.out.println("Extracted Username: " + username);
 
-        try {
-            String username = jwtUtil.extractUsername(token);
-            System.out.println("👤 Extracted Username: " + username);
+			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // Load user details from the database
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+				UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+				if (jwtUtil.validateToken(token, userDetails)) {
+					UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+							userDetails, null, userDetails.getAuthorities()
+							);
+					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+					SecurityContextHolder.getContext().setAuthentication(authToken);
+					System.out.println("Authentication successful for user: " + username);
+				} else {
+					System.out.println("Token validation failed!");
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("JWT Authentication failed: " + e.getMessage());
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			return;
+		}
 
-                // Validate token
-                if (jwtUtil.validateToken(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
-                    );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                    // Set authentication in SecurityContext
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("✅ Authentication successful for user: " + username);
-                } else {
-                    System.out.println("❌ Token validation failed!");
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("🚨 JWT Authentication failed: " + e.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-
-        filterChain.doFilter(request, response);
-    }
+		filterChain.doFilter(request, response);
+	}
 }

@@ -467,14 +467,36 @@ button:hover {
 /* Filters & Search */
 .filter-container {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.search-bar {
+    width: 250px;
+    padding: 6px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+/* Adjust filter dropdown width */
+.transaction-header {
+     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
 }
 
-.filter-dropdown, .search-bar {
-   width: 280px; /* Adjust size */
+/* Filter dropdown and search bar styling */
+.filter-search-container {
+    display: flex;
+    gap: 10px; /* Space between filter and search bar */
+}
+
+/* Ensure uniform size */
+.filter-dropdown {
+    width: 150px;
     padding: 6px;
-    font-size: 14px;
     border-radius: 5px;
     border: 1px solid #ccc;
 }
@@ -503,17 +525,23 @@ button:hover {
 
 /* Pagination */
 .pagination-container {
-    text-align: center;
-    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
+/* Pagination button styling */
 .pagination-button {
-    background-color: #2a3f54;
+    padding: 6px 12px;
+    background-color: #007bff;
     color: white;
     border: none;
-    padding: 5px 10px;
-    margin: 5px;
+    border-radius: 5px;
     cursor: pointer;
+}
+
+.pagination-button:hover {
+    background-color: #0056b3;
 }
 #paginationControls {
     text-align: center;
@@ -531,6 +559,7 @@ button:hover {
 h2 {
     text-align: center;
     color: #333;
+        margin-bottom: 15px;
 }
 
 label {
@@ -569,9 +598,8 @@ input, select, button {
 /* Center the transaction table */
 /* Make the table container full width */
 .table-container {
-    width: 100%;
-    max-width: 100%;
-    padding: 20px;
+    max-width:200%; /* Adjust table width */
+    margin: auto; /* Center the table */
 }
 
 /* Make the table stretch fully */
@@ -587,8 +615,29 @@ input, select, button {
 
 /* Adjust search input width */
 #searchInput {
-    width: 300px; /* Reduce width */
-    margin-bottom: 15px;
+    width: 250px; /* Set specific width */
+    height: 35px; /* Reduce height */
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #112240;
+    color: white;
+}
+
+.transaction-table th {
+    background: #1b2a41;
+    color: white;
+    text-align: center;
+    padding: 12px;
+}
+
+.transaction-table td {
+    text-align: center;
+    padding: 10px;
 }
 
 

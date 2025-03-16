@@ -17,53 +17,50 @@
 </head>
 <body>
 <div class="content">
-	<div id="transactionsHistoryContainer">
-	    <h2>Transaction History</h2>
-	    
-	    <div class="filter-container">
-	        <select id="filterTransactions" class="filter-dropdown">
-	            <option value="all">All</option>
-	            <option value="credit">Credit</option>
-	            <option value="debit">Debit</option>
-	        </select>
-	
-	  <div class="container-fluid">
-    <div class="table-container">
-        <h2 class="text-center">Transaction History</h2>
 
-        <input type="text" id="searchInput" class="form-control mx-auto" 
-               placeholder="Search transactions..." style="max-width: 300px;">
+<h2 class="text-center">Transaction History</h2>
+    <!-- Header for Filters and Pagination -->
+    <div class="transaction-header">
+        <!-- Filter and Search Bar -->
+         <div class="filter-search-container">
+            <select id="filterTransactions" class="filter-dropdown">
+                <option value="all">All</option>
+                <option value="credit">Credit</option>
+                <option value="debit">Debit</option>
+            </select>
+            <input type="text" id="searchInput" class="form-control" placeholder="Search transactions...">
+        </div>
 
-        <div class="table-responsive">
-            <table class="table table-bordered text-center" id="transactionTable">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Type</th>
-                        <th>Amount (€)</th>
-                        <th>Category</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody id="transactionTableBody"></tbody>
-            </table>
+        <!-- Pagination Buttons -->
+        <div class="pagination-container">
+            <button id="prevPage" class="btn btn-primary" onclick="changePage(-1)">Previous</button>
+            <span id="pageNumber"> Page 1 </span>
+            <button id="nextPage" class="btn btn-primary" onclick="changePage(1)">Next</button>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="container-fluid">
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-bordered text-center" id="transactionTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Amount (€)</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionTableBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 
-	       
-	        <div id="content"></div>
-	
-	        
-	        <div id="paginationControls">
-	            <button id="prevPage" class="btn btn-primary" onclick="changePage(-1)">Previous</button>
-	            <span id="pageNumber"> Page 1 </span>
-	            <button id="nextPage" class="btn btn-primary" onclick="changePage(1)">Next</button>
-	        </div>
-	    </div>
-	</div>
-</div>
 	<script src="/assets/js/transaction-history.js"></script>
 </body>
 </html>

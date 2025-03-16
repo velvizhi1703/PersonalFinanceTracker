@@ -9,108 +9,105 @@ import java.util.Set;
 @Entity
 @Table(name = "users")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    private String name;
+	private String name;
 
-    @Column(unique = true, nullable = false)
-    private String email;
-    
-    @Column(nullable = false)
-    private String status = "Enabled";
+	@Column(unique = true, nullable = false)
+	private String email;
 
-    @JsonIgnore  // ✅ Prevents password from appearing in JSON response
-    @Column(nullable = false)
-    private String password;
-    @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    private Set<Role> roles = new HashSet<>();
-    @Column(nullable = false)
-    private boolean enabled;
- // ✅ Ensures roles are never null
-    
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Transaction> transactions;
-    @Column(name = "total_income", nullable = false, columnDefinition = "DOUBLE DEFAULT 0")
-    private double totalIncome;
+	@Column(nullable = false)
+	private String status = "Enabled";
 
-    @Column(name = "total_expense", nullable = false, columnDefinition = "DOUBLE DEFAULT 0")
-    private double totalExpense;
+	@JsonIgnore
+	@Column(nullable = false)
+	private String password;
+	@ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
+	@CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+	@Enumerated(EnumType.STRING)
+	@Column(name = "role")
+	private Set<Role> roles = new HashSet<>();
+	@Column(nullable = false)
+	private boolean enabled;
 
-    @Column(name = "cash_in_hand", nullable = false, columnDefinition = "DOUBLE DEFAULT 0")
-    private double cashInHand;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<Transaction> transactions;
+	@Column(name = "total_income", nullable = false, columnDefinition = "DOUBLE DEFAULT 0")
+	private double totalIncome;
 
-    @Column(name = "num_transactions", nullable = false, columnDefinition = "INT DEFAULT 0")
-    private int numTransactions;
+	@Column(name = "total_expense", nullable = false, columnDefinition = "DOUBLE DEFAULT 0")
+	private double totalExpense;
 
-    // ✅ Getters and Setters
-    public Long getId() {
-        return id;
-    }
+	@Column(name = "cash_in_hand", nullable = false, columnDefinition = "DOUBLE DEFAULT 0")
+	private double cashInHand;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	@Column(name = "num_transactions", nullable = false, columnDefinition = "INT DEFAULT 0")
+	private int numTransactions;
 
-    public String getName() {
-        return name;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public String getEmail() {
-        return email;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getPassword() {
-        return password;
-    }
+	public String getEmail() {
+		return email;
+	}
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
-    public Set<Role> getRoles() {
-        return roles;
-    }
+	public String getPassword() {
+		return password;
+	}
 
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-    public boolean enabled() {
-        return enabled();
-    }
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-    public String getStatus() {
-        return status;
-    }
+	public Set<Role> getRoles() {
+		return roles;
+	}
 
-    // ✅ Add Setter if needed
-    public void setStatus(String status) {
-        this.status = status;
-    }
-    public double getTotalIncome() { return totalIncome; }
-    public void setTotalIncome(double totalIncome) { this.totalIncome = totalIncome; }
+	public void setRoles(Set<Role> roles) {
+		this.roles = roles;
+	}
+	public boolean enabled() {
+		return enabled();
+	}
 
-    public double getTotalExpense() { return totalExpense; }
-    public void setTotalExpense(double totalExpense) { this.totalExpense = totalExpense; }
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+	public String getStatus() {
+		return status;
+	}
 
-    public double getCashInHand() { return cashInHand; }
-    public void setCashInHand(double cashInHand) { this.cashInHand = cashInHand; }
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public double getTotalIncome() { return totalIncome; }
+	public void setTotalIncome(double totalIncome) { this.totalIncome = totalIncome; }
 
-    public int getNumTransactions() { return numTransactions; }
-    public void setNumTransactions(int numTransactions) { this.numTransactions = numTransactions; }
+	public double getTotalExpense() { return totalExpense; }
+	public void setTotalExpense(double totalExpense) { this.totalExpense = totalExpense; }
+
+	public double getCashInHand() { return cashInHand; }
+	public void setCashInHand(double cashInHand) { this.cashInHand = cashInHand; }
+
+	public int getNumTransactions() { return numTransactions; }
+	public void setNumTransactions(int numTransactions) { this.numTransactions = numTransactions; }
 }

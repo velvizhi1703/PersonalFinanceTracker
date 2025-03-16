@@ -111,19 +111,69 @@ function createExpenseChart(expenseBreakdown) {
         return;
     }
 
-    new Chart(ctx, {
-        type: "pie",
+    // Destroy previous chart instance if exists
+    if (window.expenseChartInstance) {
+        window.expenseChartInstance.destroy();
+    }
+
+    window.expenseChartInstance = new Chart(ctx, {
+        type: "doughnut",
         data: {
             labels: Object.keys(expenseBreakdown),
             datasets: [{
                 data: Object.values(expenseBreakdown),
-                backgroundColor: ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#A133FF", "#33FFF5"]
+                backgroundColor: [
+                    "#1E88E5", // Blue (Primary - for major expenses)
+                    "#43A047", // Green (For savings/positive categories)
+                    "#FBC02D", // Yellow (For warnings or medium spending)
+                    "#E53935", // Red (For high expenses)
+                    "#8E24AA", // Purple (Miscellaneous or discretionary spending)
+                    "#FB8C00"  // Orange (Entertainment & leisure)
+                ],
+                borderWidth: 1
             }]
+        },
+        options: {
+            cutout: "60%", // Creates the donut effect
+            plugins: {
+                legend: {
+                    display: true,
+                    position: "bottom",
+                    labels: {
+                        color: "#fff",
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: "Expense Chart", // Chart Heading
+                    color: "#fff",
+                    font: {
+                        size: 18,
+                        weight: "bold"
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return `€ ${tooltipItem.raw.toFixed(2)}`;
+                        }
+                    }
+                }
+            }
         }
     });
 
-    console.log("✅ Expense Chart Rendered!");
+    console.log("✅ Professional Expense Donut Chart Rendered!");
 }
+
+
 
 // ✅ Function to update the Budget Meter
 function updateBudgetMeter(spent, remaining) {

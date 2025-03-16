@@ -1,7 +1,5 @@
 package com.tus.finance.dto;
 
-import java.util.List;
-
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
@@ -25,8 +23,6 @@ public class UserAllDTO extends RepresentationModel<UserAllDTO> {
         this.numTransactions = numTransactions;
         this.status = status;
     }
-
-    // ✅ Getters and Setters
     public Long getId() { return id; }
     public String getName() { return name; }
     public String getEmail() { return email; }

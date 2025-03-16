@@ -1,7 +1,4 @@
 package com.tus.finance.model;
-
-import java.math.BigDecimal;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -16,89 +13,89 @@ import javax.persistence.Table;
 @Table(name = "budgets")
 public class Budget {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
 
-    @Column(nullable = false)
-    private int month;  // Month of the budget (1-12)
+	@Column(nullable = false)
+	private int month;
 
-    @Column(nullable = false)
-    private int year;  // Year of the budget
+	@Column(nullable = false)
+	private int year;
 
-    @Column(nullable = false)
-    private double amount;  // Budgeted amount
-    
-    private double spent;  // ✅ Amount spent
+	@Column(nullable = false)
+	private double amount;
 
-    private double remaining;
+	private double spent; 
 
-    // ✅ Constructors
-    public Budget() {}
+	private double remaining;
 
-    public Budget(User user, int month, int year, double amount) {
-        this.user = user;
-        this.month = month;
-        this.year = year;
-        this.amount = amount;
-    }
-    public double getSpent() {  // ✅ Getter for spent
-        return spent;
-    }
 
-    public void setSpent(double spent) {  // ✅ Setter for spent
-        this.spent = spent;
-    }
+	public Budget() {}
 
-    public double getRemaining() {  // ✅ Getter for remaining
-        return remaining;
-    }
+	public Budget(User user, int month, int year, double amount) {
+		this.user = user;
+		this.month = month;
+		this.year = year;
+		this.amount = amount;
+	}
+	public double getSpent() {  
+		return spent;
+	}
 
-    public void setRemaining(double remaining) {  // ✅ Setter for remaining
-        this.remaining = remaining;
-    }
-    // ✅ Getters & Setters
-    public Long getId() {
-        return id;
-    }
+	public void setSpent(double spent) {  
+		this.spent = spent;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public double getRemaining() { 
+		return remaining;
+	}
 
-    public User getUser() {
-        return user;
-    }
+	public void setRemaining(double remaining) { 
+		this.remaining = remaining;
+	}
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public int getMonth() {
-        return month;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public void setMonth(int month) {
-        this.month = month;
-    }
+	public User getUser() {
+		return user;
+	}
 
-    public int getYear() {
-        return year;
-    }
+	public void setUser(User user) {
+		this.user = user;
+	}
 
-    public void setYear(int year) {
-        this.year = year;
-    }
+	public int getMonth() {
+		return month;
+	}
 
-    public double getAmount() {
-        return amount;
-    }
+	public void setMonth(int month) {
+		this.month = month;
+	}
 
-    public void setAmount(double d) {
-        this.amount = d;
-    }
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
+
+	public double getAmount() {
+		return amount;
+	}
+
+	public void setAmount(double d) {
+		this.amount = d;
+	}
 }

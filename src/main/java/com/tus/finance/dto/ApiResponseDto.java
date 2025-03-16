@@ -1,7 +1,4 @@
 package com.tus.finance.dto;
-
-
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

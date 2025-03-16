@@ -18,74 +18,62 @@ import java.util.Optional;
 @Service
 public class BudgetService {
 	@Autowired
-    private final BudgetRepository budgetRepository;
+	private final BudgetRepository budgetRepository;
 	private final UserRepository userRepository;
+	public BudgetService(BudgetRepository budgetRepository,UserRepository userRepository) {
+		this.budgetRepository = budgetRepository;
+		this.userRepository = userRepository;
+	}
 
-    @Autowired
-    public BudgetService(BudgetRepository budgetRepository,UserRepository userRepository) {
-        this.budgetRepository = budgetRepository;
-        this.userRepository = userRepository;
-    }
+	public ResponseEntity<ApiResponseDto<?>> createBudget(Long userId, BudgetRequest request) {
+		Optional<User> userOpt = userRepository.findById(userId);
 
-    /**
-     * ✅ Creates a new budget entry
-     */
-    public ResponseEntity<ApiResponseDto<?>> createBudget(Long userId, BudgetRequest request) {
-        Optional<User> userOpt = userRepository.findById(userId);
+		if (userOpt.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ApiResponseDto<>(false, "User not found", null));
+		}
 
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponseDto<>(false, "User not found", null));
-        }
+		User user = userOpt.get();
 
-        User user = userOpt.get();
+		Optional<Budget> existingBudget = budgetRepository.findByUserIdAndMonthAndYear(userId, request.getMonth(), request.getYear());
 
-        Optional<Budget> existingBudget = budgetRepository.findByUserIdAndMonthAndYear(userId, request.getMonth(), request.getYear());
+		if (existingBudget.isPresent()) {
+			return ResponseEntity.badRequest()
+					.body(new ApiResponseDto<>(false, "Budget already exists", null));
+		}
 
-        if (existingBudget.isPresent()) {
-            return ResponseEntity.badRequest()
-                    .body(new ApiResponseDto<>(false, "Budget already exists", null));
-        }
+		Budget newBudget = new Budget();
+		newBudget.setUser(user);
+		newBudget.setAmount(request.getAmount());
+		newBudget.setSpent(0);
+		newBudget.setRemaining(request.getAmount());
+		newBudget.setMonth(request.getMonth());
+		newBudget.setYear(request.getYear());
 
-        Budget newBudget = new Budget();
-        newBudget.setUser(user);  // ✅ Set User object
-        newBudget.setAmount(request.getAmount());
-        newBudget.setSpent(0);
-        newBudget.setRemaining(request.getAmount());
-        newBudget.setMonth(request.getMonth());
-        newBudget.setYear(request.getYear());
+		budgetRepository.save(newBudget);
 
-        budgetRepository.save(newBudget);
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new ApiResponseDto<>(true, "Budget created successfully", newBudget));
+	}
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponseDto<>(true, "Budget created successfully", newBudget));
-    }
+	public ResponseEntity<ApiResponseDto<?>> getBudgetByMonth(Long userId, int month, int year) {
+		Optional<Budget> budget = budgetRepository.findByUserIdAndMonthAndYear(userId, month, year);
 
+		if (budget.isEmpty()) {
+			return ResponseEntity.ok(new ApiResponseDto<>(false, "No budget found for this month & year", null));
+		}
 
-    /**
-     * ✅ Gets a budget for a given user, month, and year
-     */
-    public ResponseEntity<ApiResponseDto<?>> getBudgetByMonth(Long userId, int month, int year) {
-        Optional<Budget> budget = budgetRepository.findByUserIdAndMonthAndYear(userId, month, year);
+		return ResponseEntity.ok(new ApiResponseDto<>(true, "Budget retrieved successfully!", budget.get()));
+	}
 
-        if (budget.isEmpty()) {
-            return ResponseEntity.ok(new ApiResponseDto<>(false, "No budget found for this month & year", null));
-        }
+	public List<Budget> getAllBudgets() {
+		return budgetRepository.findAll();
+	}
+	public Optional<Budget> getBudgetByMonthAndYear(Long userId, int month, int year) {
+		return budgetRepository.findByUserIdAndMonthAndYear(userId, month, year);
+	}
 
-        return ResponseEntity.ok(new ApiResponseDto<>(true, "Budget retrieved successfully!", budget.get()));
-    }
-
-    /**
-     * ✅ Admin fetches all budgets
-     */
-    public List<Budget> getAllBudgets() {
-        return budgetRepository.findAll();
-    }
-    public Optional<Budget> getBudgetByMonthAndYear(Long userId, int month, int year) {
-        return budgetRepository.findByUserIdAndMonthAndYear(userId, month, year);
-    }
-    
-    public Optional<Budget> getCurrentMonthBudget(Long userId) {
-        return budgetRepository.findCurrentMonthBudget(userId);
-}
+	public Optional<Budget> getCurrentMonthBudget(Long userId) {
+		return budgetRepository.findCurrentMonthBudget(userId);
+	}
 }
