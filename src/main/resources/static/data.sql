@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS finance_db;
+USE finance_db;
+
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -38,11 +41,13 @@ CREATE TABLE IF NOT EXISTS budgets (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-INSERT INTO users (id, email, password, name, cash_in_hand, num_transactions, enabled) VALUES
-(1, 'keerthi@example.com','$2a$10$45XeXhEy8f1OdyXU9QpcB.TvSaCSLZuBboBLXZ.HKvtVUQuLw6a7G', 'keerthi', -650, 13, TRUE),
-(2, 'vel@example.com', '$2a$10$i7JKPtavIWcgBwi5/6bXE.o6xdAXhkesU4LUqQkjr8URIW0ujOl/e', 'vel', 0, 0, TRUE),
-(3, 'sri@example.com', '$2a$10$xufq5xwaKIy7HwOU/kzAh.tOLPi14R3WSP19S64F6FjGpkPe3xTLG', 'sri', 0, 0, TRUE),
-(4, 'kala@example.com', '$2a$10$XMA1iRKFIWhgiUVly0F04.POldLj7XRH8xJ6QtvrOYG./iIhkBV8W', 'kala', 0, 0, TRUE);
+INSERT INTO users (id, email, password, name, cash_in_hand, num_transactions, enabled, status, total_expense, total_income) 
+VALUES 
+(1, 'keerthi@example.com', '$2a$10$45XeXhEy8f1OdyXU9QpcB.TvSaCSLZuBboBLXZ.HKvtVUQuLw6a7G', 'keerthi', -650, 13, TRUE, 'Enabled', 0.00, 0.00),
+(2, 'vel@example.com', '$2a$10$i7JKPtavIWcgBwi5/6bXE.o6xdAXhkesU4LUqQkjr8URIW0ujOl/e', 'vel', 0, 0, TRUE, 'Enabled', 0.00, 0.00),
+(3, 'sri@example.com', '$2a$10$xufq5xwaKIy7HwOU/kzAh.tOLPi14R3WSP19S64F6FjGpkPe3xTLG', 'sri', 0, 0, TRUE, 'Enabled', 0.00, 0.00),
+(4, 'kala@example.com', '$2a$10$XMA1iRKFIWhgiUVly0F04.POldLj7XRH8xJ6QtvrOYG./iIhkBV8W', 'kala', 0, 0, TRUE, 'Enabled', 0.00, 0.00);
+
 
 INSERT INTO user_roles (user_id, role) VALUES
 (1, 'ROLE_USER'),
@@ -58,7 +63,7 @@ INSERT INTO transactions (id, amount, category, date, type, user_id) VALUES
 (5, 300.00, 'Dining', '2024-03-05', 'DEBIT', 1),
 (6, 100.00, 'Utilities', '2024-03-06', 'DEBIT', 1),
 (7, 250.00, 'Shopping', '2024-03-07', 'DEBIT', 1),
-(8, 150.00, 'Gym Membership', '2024-03-09', 'DEBIT', 1);
+(8, 150.00, 'Gym Membership', '2024-03-09', 'DEBIT', 1),
 (9, 1800.00, 'Salary', '2024-03-01', 'CREDIT', 3),
 (10, 220.00, 'Groceries', '2024-03-02', 'DEBIT', 3),
 (11, 60.00, 'Transport', '2024-03-03', 'DEBIT', 3),
@@ -71,9 +76,12 @@ INSERT INTO transactions (id, amount, category, date, type, user_id) VALUES
 (18, 280.00, 'Dining', '2024-03-05', 'DEBIT', 4);
 
 
-INSERT INTO budgets (id, user_id, totalIncome, totalExpense, cashInHand) VALUES
-(1, 1, 2000.00, 2650.00, -650),
-(2, 2, 3000.00, 2000.00, 1000);
+INSERT INTO budgets (amount, month, year, user_id, remaining, spent) 
+VALUES 
+(5000.00, 3, 2025, 1, 4500.00, 500.00),
+(7000.00, 3, 2025, 2, 6500.00, 500.00),
+(4000.00, 2, 2025, 3, 3500.00, 500.00),
+(6000.00, 1, 2025, 4, 5000.00, 1000.00);
 
 
 
