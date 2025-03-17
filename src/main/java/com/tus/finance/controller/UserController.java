@@ -1,5 +1,5 @@
 package com.tus.finance.controller;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.tus.finance.dto.UserAllDTO;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -117,7 +117,7 @@ public class UserController {
 
 		user.setStatus(newStatus);
 		userRepository.save(user);
-		  entityManager.flush();  // **Force Hibernate to write changes immediately**
+		  entityManager.flush();  
 		    entityManager.clear();
 		User updatedUser = userRepository.findById(userId).orElse(null);
 	    if (updatedUser != null) {
@@ -136,4 +136,5 @@ public class UserController {
 
 		return ResponseEntity.ok(response);
 	}
+	
 }

@@ -76,41 +76,6 @@ class TransactionControllerTest {
         testTransaction.setCategory("Food");
     }
 
-//    @Test
-//    void testGetUserTransactions_Success() throws Exception {
-//        when(userService.findByEmail("vel@example.com")).thenReturn(Optional.of(testUser));
-//        when(transactionService.getTransactionsByUserId(1L)).thenReturn(List.of(testTransaction));
-//
-//        mockMvc.perform(get("/api/transactions/user")
-//                .with(user("vel@example.com").roles("USER")))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$._embedded.transactionList[0].id").value(1))
-//                .andExpect(jsonPath("$._embedded.transactionList[0].amount").value(100.0));
-//    }
-
-//    @Test
-//    void testGetUserTransactions_UserNotFound() throws Exception {
-//        when(userService.findByEmail("testuser@example.com")).thenReturn(Optional.empty());
-//
-//        mockMvc.perform(get("/api/transactions/user")
-//                .with(jwt().jwt(token -> token.claim("sub", "testuser@example.com"))))  // Alternative JWT claim approach
-//                .andExpect(status().isNotFound());
-//    }
-//
-
-
-//    @Test
-//    void testGetTransactionById_Success() throws Exception {
-//        when(transactionService.getTransactionById(1L)).thenReturn(Optional.of(testTransaction));
-//        when(userService.findByEmail("vel@example.com")).thenReturn(Optional.of(testUser));
-//
-//        mockMvc.perform(get("/api/transactions/1")
-//                .with(user("vel@example.com").roles("USER")))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.id").value(1))
-//                .andExpect(jsonPath("$.amount").value(100.0));
-//    }
-
     @Test
     void testGetTransactionById_NotFound() throws Exception {
         when(transactionService.getTransactionById(2L)).thenReturn(Optional.empty());
@@ -119,18 +84,6 @@ class TransactionControllerTest {
                 .with(user("vel@example.com").roles("USER")))
                 .andExpect(status().isNotFound());
     }
-
-//    @Test
-//    @WithMockUser(username = "testuser@example.com", roles = {"USER"})
-//    void testAddTransaction_Success() throws Exception {
-//        when(userService.findByEmail("testuser@example.com")).thenReturn(Optional.of(testUser));
-//        when(transactionService.addTransaction(any(Transaction.class))).thenReturn(testTransaction);
-//
-//        mockMvc.perform(post("/api/transactions")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content("{\"amount\": 100.0, \"type\": \"DEBIT\", \"category\": \"Food\"}"))
-//                .andExpect(status().isCreated());
-//    }
 
     @Test
     void testDeleteTransaction_Success() throws Exception {
@@ -170,14 +123,5 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.num_transactions").value(10));
     }
 
-//    @Test
-//    void testGetDashboardStats_UserNotFound() throws Exception {
-//        when(jwtUtil.extractUsername("invalid-token")).thenReturn("unknown@example.com");
-//        when(userRepository.findByEmail("vel@example.com")).thenReturn(Optional.empty());
-//
-//        mockMvc.perform(get("/api/transactions/dashboard")
-//                .header("Authorization", "Bearer invalid-token")
-//                .with(user("unknown@example.com").roles("USER")))
-//                .andExpect(status().isNotFound());
-//    }
+
 }

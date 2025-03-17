@@ -29,7 +29,7 @@ public class Transaction {
 	@JsonIgnore 
 	private User user;
 
-	public String getType() {
+    public String getType() {
 		return type.name(); 
 	}
 

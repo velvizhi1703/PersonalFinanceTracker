@@ -46,8 +46,8 @@ public class SecurityConfig {
 		.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 		.exceptionHandling()
 		.accessDeniedHandler((request, response, accessDeniedException) -> {
-			System.out.println("🚨 Access Denied for User: " + request.getUserPrincipal());
-			System.out.println("🚨 Required Role: ROLE_ADMIN");
+			System.out.println("Access Denied for User: " + request.getUserPrincipal());
+			System.out.println("Required Role: ROLE_ADMIN");
 			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 		});
 

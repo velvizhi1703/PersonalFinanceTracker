@@ -80,9 +80,10 @@ public class TransactionController {
 		List<Transaction> transactions = transactionService.getTransactionsByUserId(userId);
 
 		if (transactions.isEmpty()) {
+			System.out.println("Error:Transactions not found.Please check the ID and try again");
 			return ResponseEntity.notFound().build();
 		}
-
+         
 		List<EntityModel<Transaction>> transactionResources = transactions.stream()
 				.map(transaction -> EntityModel.of(transaction,
 						linkTo(methodOn(TransactionController.class).getTransactionsByUserId(userId)).withSelfRel(),

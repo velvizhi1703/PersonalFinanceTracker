@@ -72,7 +72,7 @@ class AuthControllerTest {
 
 @Test
     void testLogin_Failed_UserNotFound() throws Exception {
-        // Mock userRepository to return empty (User Not Found)
+     
         when(userRepository.findByEmail("testuser@example.com")).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/api/auth/login")
@@ -83,7 +83,7 @@ class AuthControllerTest {
 
     @Test
     void testLogin_Failed_DisabledUser() throws Exception {
-        // Mock user with disabled status
+      
         testUser.setStatus("Disabled");
         when(userRepository.findByEmail("testuser@example.com")).thenReturn(Optional.of(testUser));
 
@@ -95,7 +95,7 @@ class AuthControllerTest {
 
     @Test
     void testLogin_Failed_InvalidCredentials() throws Exception {
-        // Mock authentication failure
+      
         when(userRepository.findByEmail("testuser@example.com")).thenReturn(Optional.of(testUser));
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new RuntimeException("Invalid credentials"));

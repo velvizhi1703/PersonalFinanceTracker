@@ -18,8 +18,8 @@ public class CustomerUserDetails implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		System.out.println("🔹 Extracted Authorities: " + authorities);
-		authorities.forEach(auth -> System.out.println("🔹 Authority: " + auth.getAuthority()));
+		System.out.println("Extracted Authorities: " + authorities);
+		authorities.forEach(auth -> System.out.println("Authority: " + auth.getAuthority()));
 		return authorities;
 	}
 

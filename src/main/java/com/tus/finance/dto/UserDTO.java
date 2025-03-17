@@ -22,8 +22,8 @@ public class UserDTO extends RepresentationModel<UserDTO> {
 	private Set<Role> roles;
 	private Long id;
 	private String status;
-	public UserDTO() {}
-
+	public UserDTO() {} 
+	
 	public UserDTO(String name, String email, String password, Set<Role> roles) {
 		this.name = name;
 		this.email = email;

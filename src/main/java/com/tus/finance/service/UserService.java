@@ -54,7 +54,7 @@ public class UserService {
                 user.getTotalExpense(),
                 user.getTotalIncome(),
                 user.getNumTransactions(),
-                user.getStatus() // 🔹 Return the actual status without forcing "Enabled"
+                user.getStatus() 
         )).collect(Collectors.toList());
     }
 
