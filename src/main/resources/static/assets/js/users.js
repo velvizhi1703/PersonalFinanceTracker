@@ -1,250 +1,214 @@
 $(document).ready(() => {
-    console.log("🚀 User Dashboard Script Loaded");
-
 	loadUserData();
-    loadDashboardData();
+	loadDashboardData();
 });
 function loadUserData() {
-    console.log("📥 Fetching user data...");
-    const token = localStorage.getItem("token");
+	const token = localStorage.getItem("token");
 
-    if (!token) {
-        console.warn("⚠️ No token found! Redirecting to login...");
-        localStorage.clear();
-        window.location.hash = "#login";
-        return;
-    }
+	if (!token) {
+		localStorage.clear();
+		window.location.hash = "#login";
+		return;
+	}
 
-    $.ajax({
-        url: "http://localhost:9091/api/users/me",
-        method: "GET",
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-        success: (data) => {
-            if (!data || !data.name || !data.email) {
-                console.error("❌ Invalid User Data");
-                return;
-            }
+	$.ajax({
+		url: "http://localhost:9091/api/users/me",
+		method: "GET",
+		headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+		success: (data) => {
+			if (!data || !data.name || !data.email) {
+				return;
+			}
 
-            console.log("✅ User Data:", data);
-
-            // ✅ Dynamically update the username and email in the UI
-            $("#userName").text(data.name);
-            $("#userEmail").text(`(${data.email})`);
-        },
-        error: (error) => {
-            console.error("❌ Error fetching user data:", error);
-        }
-    });
+			$("#userName").text(data.name);
+			$("#userEmail").text(`(${data.email})`);
+		},
+		error: (error) => {
+			console.error("Error fetching user data:", error);
+		}
+	});
 }
 function loadDashboardData() {
-    console.log("📥 Loading user dashboard data...");
-    const token = localStorage.getItem("token");
+	const token = localStorage.getItem("token");
 
-    if (!token) {
-        console.warn("⚠️ No token found! Redirecting to login...");
-        localStorage.clear();
-        window.location.hash = "#login";
-        return;
-    }
+	if (!token) {
+		localStorage.clear();
+		window.location.hash = "#login";
+		return;
+	}
 
-    $.ajax({
-        url: "http://localhost:9091/api/transactions/dashboard",
-        method: "GET",
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-        success: (data) => {
-            if (!data) {
-                console.error("❌ Invalid Dashboard Data");
-                return;
-            }
+	$.ajax({
+		url: "http://localhost:9091/api/transactions/dashboard",
+		method: "GET",
+		headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+		success: (data) => {
+			if (!data) {
+				return;
+			}
 
-            console.log("✅ Dashboard Data:", data);
+			$("#income").text(formatCurrency(data.income));
+			$("#expense").text(formatCurrency(data.expense));
+			$("#cashInHand").text(formatCurrency(data.cash_in_hand));
+			$("#transactionCount").text(data.num_transactions);
 
-            // ✅ Update Dashboard Data
-            $("#income").text(formatCurrency(data.income));
-            $("#expense").text(formatCurrency(data.expense));
-            $("#cashInHand").text(formatCurrency(data.cash_in_hand));
-            $("#transactionCount").text(data.num_transactions);
+			if (data.budget) {
+				$("#budgetAmount").text(formatCurrency(data.budget.spent));
+				$("#remainingBudget").text(formatCurrency(data.budget.remaining));
+			}
 
-            // ✅ Update Budget Meter
-            if (data.budget) {
-                $("#budgetAmount").text(formatCurrency(data.budget.spent));
-                $("#remainingBudget").text(formatCurrency(data.budget.remaining));
-            }
-
-            // ✅ Ensure Charts are Updated
-            updateCharts(data);
+			updateCharts(data);
 			updateBudgetMeter(data.budget.spent, data.budget.remaining);
-        },
-        error: (error) => {
-            console.error("❌ Error loading dashboard data:", error);
-        }
-    });
+		},
+		error: (error) => {
+			console.error("Error loading dashboard data:", error);
+		}
+	});
 }
 
 function formatCurrency(value) {
-    return `€ ${parseFloat(value).toFixed(2)}`;
+	return `€ ${parseFloat(value).toFixed(2)}`;
 }
 
-// ✅ Function to update all charts
 function updateCharts(data) {
-    console.log("📊 Updating Charts...");
-    
-    if (data.expenseBreakdown && Object.keys(data.expenseBreakdown).length > 0) {
-        createExpenseChart(data.expenseBreakdown);
-    } else {
-        console.warn("⚠️ No expense breakdown data found!");
-    }
 
-    if (data.budget) {
-        updateBudgetMeter(data.budget.spent, data.budget.remaining);
-    } else {
-        console.warn("⚠️ No budget data found!");
-    }
+	if (data.expenseBreakdown && Object.keys(data.expenseBreakdown).length > 0) {
+		createExpenseChart(data.expenseBreakdown);
+	}
+
+	if (data.budget) {
+		updateBudgetMeter(data.budget.spent, data.budget.remaining);
+	}
 }
 
-// ✅ Function to create the Expense Breakdown Chart
 function createExpenseChart(expenseBreakdown) {
-    const ctx = document.getElementById("expenseChart");
+	const ctx = document.getElementById("expenseChart");
 
-    if (!ctx) {
-        console.error("❌ Chart canvas element not found!");
-        return;
-    }
+	if (!ctx) {
+		return;
+	}
 
-    // Destroy previous chart instance if exists
-    if (window.expenseChartInstance) {
-        window.expenseChartInstance.destroy();
-    }
+	if (window.expenseChartInstance) {
+		window.expenseChartInstance.destroy();
+	}
 
-    window.expenseChartInstance = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-            labels: Object.keys(expenseBreakdown),
-            datasets: [{
-                data: Object.values(expenseBreakdown),
-                backgroundColor: [
-                    "#1E88E5", // Blue (Primary - for major expenses)
-                    "#43A047", // Green (For savings/positive categories)
-                    "#FBC02D", // Yellow (For warnings or medium spending)
-                    "#E53935", // Red (For high expenses)
-                    "#8E24AA", // Purple (Miscellaneous or discretionary spending)
-                    "#FB8C00"  // Orange (Entertainment & leisure)
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            cutout: "60%", // Creates the donut effect
-            plugins: {
-                legend: {
-                    display: true,
-                    position: "bottom",
-                    labels: {
-                        color: "#fff",
-                        font: {
-                            size: 14
-                        }
-                    }
-                },
-                title: {
-                    display: true,
-                    text: "Expense Chart", // Chart Heading
-                    color: "#fff",
-                    font: {
-                        size: 18,
-                        weight: "bold"
-                    },
-                    padding: {
-                        top: 10,
-                        bottom: 20
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function (tooltipItem) {
-                            return `€ ${tooltipItem.raw.toFixed(2)}`;
-                        }
-                    }
-                }
-            }
-        }
-    });
+	window.expenseChartInstance = new Chart(ctx, {
+		type: "doughnut",
+		data: {
+			labels: Object.keys(expenseBreakdown),
+			datasets: [{
+				data: Object.values(expenseBreakdown),
+				backgroundColor: [
+					"#1E88E5",
+					"#43A047",
+					"#FBC02D",
+					"#E53935",
+					"#8E24AA",
+					"#FB8C00"
+				],
+				borderWidth: 1
+			}]
+		},
+		options: {
+			cutout: "60%",
+			plugins: {
+				legend: {
+					display: true,
+					position: "bottom",
+					labels: {
+						color: "#fff",
+						font: {
+							size: 14
+						}
+					}
+				},
+				title: {
+					display: true,
+					text: "Expense Chart",
+					color: "#fff",
+					font: {
+						size: 18,
+						weight: "bold"
+					},
+					padding: {
+						top: 10,
+						bottom: 20
+					}
+				},
+				tooltip: {
+					callbacks: {
+						label: function(tooltipItem) {
+							return `€ ${tooltipItem.raw.toFixed(2)}`;
+						}
+					}
+				}
+			}
+		}
+	});
 
-    console.log("✅ Professional Expense Donut Chart Rendered!");
 }
 
-
-
-// ✅ Function to update the Budget Meter
 function updateBudgetMeter(spent, remaining) {
-    const ctx = document.getElementById("budgetChart");
+	const ctx = document.getElementById("budgetChart");
 
-    if (!ctx) {
-        console.error("❌ Budget chart element not found!");
-        return;
-    }
+	if (!ctx) {
+		return;
+	}
 
-    // Destroy previous chart instance if exists
-    if (window.budgetChartInstance) {
-        window.budgetChartInstance.destroy();
-    }
+	if (window.budgetChartInstance) {
+		window.budgetChartInstance.destroy();
+	}
 
-    // Create a Doughnut Chart (Semi-circle meter)
-    window.budgetChartInstance = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-            labels: ["Spent", "Remaining"],
-            datasets: [{
-                data: [spent, remaining],
-                backgroundColor: ["#FF5733", "#33FF57"], // Red for spent, green for remaining
-                borderWidth: 0
-            }]
-        },
-        options: {
-            rotation: -90, // Start from the top
-            circumference: 180, // Show as semi-circle
-            cutout: "70%", // Adjust thickness
-            plugins: {
-                legend: {
-                    display: true,
-                    position: "bottom",
-                    labels: {
-                        color: "#fff",
-                        font: {
-                            size: 14
-                        }
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function (tooltipItem) {
-                            return `€ ${tooltipItem.raw.toFixed(2)}`;
-                        }
-                    }
-                }
-            }
-        }
-    });
+	window.budgetChartInstance = new Chart(ctx, {
+		type: "doughnut",
+		data: {
+			labels: ["Spent", "Remaining"],
+			datasets: [{
+				data: [spent, remaining],
+				backgroundColor: ["#FF5733", "#33FF57"],
+				borderWidth: 0
+			}]
+		},
+		options: {
+			rotation: -90,
+			circumference: 180,
+			cutout: "70%",
+			plugins: {
+				legend: {
+					display: true,
+					position: "bottom",
+					labels: {
+						color: "#fff",
+						font: {
+							size: 14
+						}
+					}
+				},
+				tooltip: {
+					callbacks: {
+						label: function(tooltipItem) {
+							return `€ ${tooltipItem.raw.toFixed(2)}`;
+						}
+					}
+				}
+			}
+		}
+	});
 
-    // ✅ Update Budget Text
-    document.getElementById("remainingBudget").innerText = remaining < 0 
-        ? `Overbudget by €${Math.abs(remaining).toFixed(2)}` 
-        : `€ ${remaining.toFixed(2)}`;
+	document.getElementById("remainingBudget").innerText = remaining < 0
+		? `Overbudget by €${Math.abs(remaining).toFixed(2)}`
+		: `€ ${remaining.toFixed(2)}`;
 }
-document.getElementById("editBudget").addEventListener("click", function () {
-    let newBudget = prompt("Enter your new budget amount:");
+document.getElementById("editBudget").addEventListener("click", function() {
+	let newBudget = prompt("Enter your new budget amount:");
 
-    if (newBudget && !isNaN(newBudget)) {
-        newBudget = parseFloat(newBudget);
+	if (newBudget && !isNaN(newBudget)) {
+		newBudget = parseFloat(newBudget);
 
-        // ✅ Update Budget UI
-        document.getElementById("budgetAmount").innerText = `€ ${newBudget.toFixed(2)}`;
+		document.getElementById("budgetAmount").innerText = `€ ${newBudget.toFixed(2)}`;
 
-        // ✅ Fetch existing spent amount
-        let spent = window.budgetChartInstance?.data.datasets[0].data[0] || 0;
-        let remaining = newBudget - spent;
+		let spent = window.budgetChartInstance?.data.datasets[0].data[0] || 0;
+		let remaining = newBudget - spent;
 
-        // ✅ Update the Budget Meter with new budget values
-        updateBudgetMeter(spent, remaining);
-    }
+		updateBudgetMeter(spent, remaining);
+	}
 });

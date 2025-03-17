@@ -20,34 +20,38 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-
-    <div class="container mt-5">
-        <h1>Admin Dashboard</h1>
-        <p>Manage users and transactions.</p>
-
-     <main class="dashboard-main">
-           
-
-            <section id="transactionsContainer">
-                <h2>Transactions</h2>
+<div class="container-fluid mt-5">
+<h1>Admin Page</h1>
+      <main class="dashboard-main">
+           <section id="transactionsContainer">
+                <h2>All User Transactions</h2>
                 <input type="text" id="searchTransactionsAdmin" placeholder="Search admin transactions..." class="search-bar">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>User Email</th>
-                            <th>Category</th>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactionsTableBody"></tbody>
-                </table>
-            </section>
-        </main>
+                 <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User Email</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                   </tr>
+            </thead>
+            <tbody id="transactionsTableBody"></tbody>
+        </table>
     </div>
 
+    <!-- Pagination Controls -->
+    <div id="paginationControls" class="d-flex justify-content-center mt-3">
+        <button id="prevPage" class="btn btn-primary mx-2">Previous</button>
+        <span id="pageNumber" class="mx-3">Page 1</span>
+        <button id="nextPage" class="btn btn-primary mx-2">Next</button>
+    </div>
+</section>
+        </main>
+    </div>
+    
     <script src="/assets/js/admin_transactions.js" defer></script>
 
 </body>

@@ -29,13 +29,10 @@
 			<header>
 				<h1>User Dashboard</h1>
 				<div class="profile">
-    <i class="fa fa-user"></i> 
-    <span id="userName"></span>  <!-- Make this empty initially -->
-    <span id="userEmail"></span>  <!-- Add this for the email -->
-</div>
+					<i class="fa fa-user"></i> <span id="userName"></span> <span
+						id="userEmail"></span>
+				</div>
 			</header>
-
-
 			<div id="dashboardSummary">
 				<section class="summary-cards">
 					<div class="card income">
@@ -63,8 +60,6 @@
 						<p>No of transactions</p>
 					</div>
 				</section>
-
-
 				<section class="charts-container">
 					<div class="chart-box">
 						<canvas id="expenseChart"></canvas>
@@ -72,7 +67,7 @@
 					<div class="chart-box">
 						<h2>
 							Budget: <span id="budgetAmount">Loading...</span>
-							    <button id="editBudget" class="btn btn-primary">Edit</button>
+							<button id="editBudget" class="btn btn-primary">Edit</button>
 						</h2>
 						<p>
 							Remaining: <span id="remainingBudget">Loading...</span>
@@ -85,13 +80,9 @@
 					</div>
 				</section>
 			</div>
-
-
-
 		</main>
 	</div>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<script src="/assets/js/users.js" defer></script>
-
 </body>
 </html>

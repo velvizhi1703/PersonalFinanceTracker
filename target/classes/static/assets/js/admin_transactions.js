@@ -1,101 +1,133 @@
-$(document).ready(function () {
-    console.log("Admin Dashboard Script Loaded");
+$(document).ready(function() {
+	const token = localStorage.getItem("token");
+	if (!token) {
+		localStorage.clear();
+		window.location.hash = "#login";
+		return;
+	}
 
-    const token = localStorage.getItem("token");
+	let userRole = localStorage.getItem("userRole");
+	if (!userRole) {
+		fetchUserDetails();
+	}
 
-    if (!token) {
-        console.error("No token found! Redirecting to login...");
-        localStorage.clear();
-        window.location.hash = "#login";
-        return;
-    }
+	if (userRole !== "ROLE_ADMIN") {
+		window.location.hash = "#users";
+		return;
+	}
+	$("#adminDashboardContainer").removeClass("d-none");
 
-    let userRole = localStorage.getItem("userRole");
-    if (!userRole) {
-        console.warn("No stored role! Fetching from API...");
-        fetchUserDetails();
-    }
-	
+	$(window).on("hashchange", function() {
+		if (window.location.hash === "#admin_transactions") {
+			loadAdminTransactions();
+		}
+	});
 
-    if (userRole !== "ROLE_ADMIN") {
-        console.warn("Unauthorized! Redirecting non-admin to Users Page...");
-        window.location.hash = "#users";
-        return;
-    }
-
-    console.log("Admin Access Granted! Showing Dashboard...");
-    $("#adminDashboardContainer").removeClass("d-none");
-
-      loadAdminTransactions();
-
-    // Hide Transactions section on page load
-    $("#transactionsContainer").addClass("d-none");
+	if (window.location.hash === "#admin_transactions") {
+		loadAdminTransactions();
+	}
 });
 
 
+let transactions = [];
+let filteredTransactions = [];
+let currentPage = 1;
+const rowsPerPage = 5;
+
 function loadAdminTransactions() {
-    console.log("📢 Fetching all transactions for admin...");
+	$.ajax({
+		url: `http://localhost:9091/api/transactions/admin`,
+		method: "GET",
+		headers: {
+			"Authorization": "Bearer " + localStorage.getItem("token"),
+			"Content-Type": "application/json"
+		},
+		success: function(data) {
+			const transactionsData = data._embedded?.transactionList || [];
 
-    $.ajax({
-        url: `http://localhost:9091/api/transactions/admin`, // ✅ Ensure correct API
-        method: "GET",
-        headers: {
-            "Authorization": "Bearer " + localStorage.getItem("token"),
-            "Content-Type": "application/json"
-        },
-        success: function (data) {
-            console.log("✅ Admin Transactions Fetched:", data);
-			 // ✅ Extract transactions from HATEOAS response
-			            const transactions = data._embedded?.transactionList || [];
-
-			            if (transactions.length === 0) {
-			                console.warn("🚨 No transactions found!");
-			            }
-
-			            displayAdminTransactions(transactions);
-			        },
-			        error: function (error) {
-			            console.error("🚨 Error fetching transactions:", error);
-			        }
-			    });
+			if (transactionsData.length === 0) {
 			}
+			transactions = transactionsData;
+			filteredTransactions = transactions;
+			currentPage = 1;
+			displayAdminTransactions();
+		},
+		error: function(error) {
+			console.error("Error fetching transactions:", error);
+		}
+	});
+}
+
+function displayAdminTransactions() {
+	const transactionsContainer = $("#transactionsContainer");
+	const transactionsTableBody = $("#transactionsTableBody");
+
+	if (!transactionsTableBody.length) {
+		return;
+	}
+	transactionsTableBody.html("");
+
+	let start = (currentPage - 1) * rowsPerPage;
+	let end = start + rowsPerPage;
+	let paginatedItems = filteredTransactions.slice(start, end);
+
+	if (paginatedItems.length === 0) {
+		transactionsTableBody.html("<tr><td colspan='6'>No transactions available</td></tr>");
+	} const rows = paginatedItems.map(transaction => {
+		return `
+		               <tr id="transaction-${transaction.id}">
+		                   <td>${transaction.id}</td>
+		                   <td>${transaction.userEmail || "N/A"}</td>
+		                   <td>${transaction.category || "No Category"}</td>
+		                   <td>${transaction.date ? new Date(transaction.date).toLocaleDateString() : "N/A"}</td>
+		                   <td>${transaction.type || "N/A"}</td>
+		                   <td>€ ${transaction.amount || 0}</td>
+		                   </tr>
+		           `;
+	}).join('');
+
+	transactionsTableBody.html(rows);
+}
 
 
-			function displayAdminTransactions(transactions) {
-			    console.log("✅ Transactions Data Received:", transactions);
+updatePaginationControls();
 
-			    const transactionsContainer = $("#transactionsContainer");
-			    const transactionsTableBody = $("#transactionsTableBody");
+transactionsContainer.removeClass("d-none").css("display", "block");
 
-			    if (!transactionsTableBody.length) {
-			        console.error("❌ transactionsTableBody not found in the HTML!");
-			        return;
-			    }
 
-			    transactionsTableBody.html(""); // Clear existing table data
 
-			    if (!Array.isArray(transactions) || transactions.length === 0) {
-			        console.warn("🚨 No transactions found!");
-			        transactionsTableBody.html("<tr><td colspan='6'>No transactions available</td></tr>");
-			    } else {
-			        console.log(`🔹 Populating table with ${transactions.length} transactions...`);
+function updatePaginationControls() {
+	$("#pageNumber").text(`Page ${currentPage}`);
+	$("#prevPage").prop("disabled", currentPage === 1);
+	$("#nextPage").prop("disabled", currentPage * rowsPerPage >= filteredTransactions.length);
+}
+$("#searchTransactionsAdmin").on("input", function() {
+	let searchText = $(this).val().toLowerCase();
 
-			        const rows = transactions.map(transaction => `
-			            <tr>
-			                <td>${transaction.id}</td>
-			                <td>${transaction.userEmail || "N/A"}</td>
-			                <td>${transaction.category || "No Category"}</td>
-			                <td>${transaction.date ? new Date(transaction.date).toLocaleDateString() : "N/A"}</td>
-			                <td>${transaction.type || "N/A"}</td>
-			                <td>Rs. ${transaction.amount || 0}</td>
-			            </tr>
-			        `).join('');
+	filteredTransactions = transactions.filter(transaction =>
+		transaction.id.toString().includes(searchText) ||
+		(transaction.userEmail && transaction.userEmail.toLowerCase().includes(searchText)) ||
+		(transaction.category && transaction.category.toLowerCase().includes(searchText)) ||
+		(transaction.date && new Date(transaction.date).toLocaleDateString().includes(searchText)) ||
+		(transaction.type && transaction.type.toLowerCase().includes(searchText)) ||
+		(transaction.amount && transaction.amount.toString().includes(searchText))
+	);
 
-			        transactionsTableBody.html(rows);
-			        console.log("✅ Transactions Table Updated");
-			    }
+	currentPage = 1;
+	displayAdminTransactions();
+});
 
-			    // ✅ Force the table section to be visible
-			    transactionsContainer.removeClass("d-none").css("display", "block");
-			    console.log("✅ Table is now visible!");
-			}
+$("#prevPage").on("click", function() {
+	if (currentPage > 1) {
+		currentPage--;
+		displayAdminTransactions();
+	}
+});
+
+$("#nextPage").on("click", function() {
+	if (currentPage * rowsPerPage < filteredTransactions.length) {
+		currentPage++;
+		displayAdminTransactions();
+	}
+});
+

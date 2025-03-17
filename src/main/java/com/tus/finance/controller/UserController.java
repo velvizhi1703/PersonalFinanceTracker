@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
 import javax.validation.Valid;
 
 @RestController
@@ -28,10 +29,11 @@ import javax.validation.Valid;
 public class UserController {
 	private final UserService userService;
 	private final UserRepository userRepository;
-
-	public UserController(UserService userService, UserRepository userRepository) {
+	private EntityManager entityManager;
+	public UserController(UserService userService, UserRepository userRepository,EntityManager entityManager) {
 		this.userService = userService;
 		this.userRepository = userRepository;
+		this.entityManager = entityManager;
 
 	}
 
@@ -115,6 +117,14 @@ public class UserController {
 
 		user.setStatus(newStatus);
 		userRepository.save(user);
+		  entityManager.flush();  // **Force Hibernate to write changes immediately**
+		    entityManager.clear();
+		User updatedUser = userRepository.findById(userId).orElse(null);
+	    if (updatedUser != null) {
+	        System.out.println("After update: User ID: " + updatedUser.getId() + ", Status: " + updatedUser.getStatus());
+	    } else {
+	        System.out.println("Update failed: User not found after saving.");
+	    }
 		Map<String, String> responseBody = Map.of("message", "User status updated to " + newStatus);
 
 		EntityModel<Map<String, String>> response = EntityModel.of(
