@@ -32,7 +32,7 @@ $(document).ready(function() {
 let transactions = [];
 let filteredTransactions = [];
 let currentPage = 1;
-const rowsPerPage = 5;
+const rowsPerPage = 10;
 
 function loadAdminTransactions() {
 	$.ajax({
@@ -92,14 +92,10 @@ function displayAdminTransactions() {
 
 updatePaginationControls();
 
-transactionsContainer.removeClass("d-none").css("display", "block");
-
-
-
 function updatePaginationControls() {
-	$("#pageNumber").text(`Page ${currentPage}`);
-	$("#prevPage").prop("disabled", currentPage === 1);
-	$("#nextPage").prop("disabled", currentPage * rowsPerPage >= filteredTransactions.length);
+    $("#pageNumber").text(`Page ${currentPage} of ${Math.ceil(filteredTransactions.length / rowsPerPage)}`);
+    $("#prevPage").prop("disabled", currentPage === 1);
+    $("#nextPage").prop("disabled", currentPage * rowsPerPage >= filteredTransactions.length);
 }
 $("#searchTransactionsAdmin").on("input", function() {
 	let searchText = $(this).val().toLowerCase();
