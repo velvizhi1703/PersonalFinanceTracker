@@ -15,12 +15,9 @@ import java.util.stream.Collectors;
 
 @Component 
 public class JwtUtil {
-	// private static final String SECRET_KEY = "mysupersecurejwtsecretkeywith256bits"; 
+	
 	private static final String SECRET_KEY = "n8vR+zTMEkKf/D5Oa6t5qE3nKMtJhGTPM5p+5Aowxgk=";
 
-	//    private Key getSigningKey() {
-	//        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
-	//    }
 	private Key getSigningKey() {
 		return Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET_KEY));
 	}

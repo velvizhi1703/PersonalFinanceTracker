@@ -81,16 +81,6 @@ class UserServiceTest {
         verify(userRepository, times(1)).save(any(User.class));
     }
 
-//    @Test
-//    void testRegisterUser_UserAlreadyExists() {
-//        when(userRepository.findByEmail("vel@example.com")).thenReturn(Optional.of(testUser));
-//
-//        Exception exception = assertThrows(UserAlreadyExistsException.class, () ->
-//                //userService.registerUser(testUser));
-//
-//        //assertEquals("vel@example.com", exception.getMessage());
-//    }
-
     @Test
     void testDeleteAllUsers_Success() {
         doNothing().when(userRepository).deleteAll();

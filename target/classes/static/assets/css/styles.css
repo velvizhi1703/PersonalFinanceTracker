@@ -115,9 +115,6 @@
 	flex-direction: column;
 }
 
-#loginPage {
-	display: block !important;
-}
 
 body:has(#loginPage) #loginContainer {
 	display: flex;
@@ -460,9 +457,7 @@ button:hover {
 		margin-left: 0;
 		width: 100%;
 	}
-	.search-bar {
-		width: 100%;
-	}
+	
 	#transactionHistorySection {
 		display: none;
 	}

@@ -2,7 +2,6 @@ package com.tus.finance.controller;
 
 import com.tus.finance.model.Transaction;
 import com.tus.finance.model.User;
-import com.tus.finance.repository.BudgetRepository;
 import com.tus.finance.repository.TransactionRepository;
 import com.tus.finance.repository.UserRepository;
 import com.tus.finance.security.JwtUtil;
@@ -25,69 +24,67 @@ import org.slf4j.LoggerFactory;
 @RestController
 @RequestMapping("/api/transactions")
 public class TransactionController {
+	
 	private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
-
+	private static final String ALL_TRANSACTIONS_REL = "all-transactions";
 	private final TransactionService transactionService;
 	private final UserService userService;
 	private final UserRepository userRepository;
 	private final TransactionRepository transactionRepository;
 	private final JwtUtil jwtUtil;
 
-	private final BudgetRepository budgetRepository;
 
-	public TransactionController(TransactionService transactionService, UserService userService,UserRepository userRepository,TransactionRepository transactionRepository,BudgetRepository budgetRepository, JwtUtil jwtUtil) { 
+	public TransactionController(TransactionService transactionService, UserService userService,UserRepository userRepository,TransactionRepository transactionRepository,JwtUtil jwtUtil) { 
 		this.transactionService = transactionService;
 		this.userService = userService;
 		this.userRepository = userRepository;
 		this.transactionRepository = transactionRepository;
 		this.jwtUtil=jwtUtil;
-		this.budgetRepository = budgetRepository;
+		
 	}
 
-	@GetMapping("/user")
-	@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-	public ResponseEntity<CollectionModel<EntityModel<Transaction>>> getUserTransactions(Authentication authentication) {
-		String userEmail = authentication.getName();
-		Optional<User> user = userService.findByEmail(userEmail);
+	  @GetMapping("/user")
+	    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+	    public ResponseEntity<CollectionModel<EntityModel<Transaction>>> getUserTransactions(Authentication authentication) {
+	        String userEmail = authentication.getName();
+	        Optional<User> user = userService.findByEmail(userEmail);
 
-		if (user.isPresent()) {
-			List<Transaction> transactions = transactionService.getTransactionsByUserId(user.get().getId());
+	        if (user.isPresent()) {
+	            List<Transaction> transactions = transactionService.getTransactionsByUserId(user.get().getId());
 
-			List<EntityModel<Transaction>> transactionResources = transactions.stream()
-					.map(transaction -> {
-						EntityModel<Transaction> entityModel = EntityModel.of(transaction,
-								linkTo(methodOn(TransactionController.class)
-										.getTransactionById(transaction.getId(), authentication)).withSelfRel(),
-								linkTo(methodOn(TransactionController.class)
-										.getUserTransactions(authentication)).withRel("user-transactions")
-								);
-						return entityModel;
-					})
-					.collect(Collectors.toList());
+	            List<EntityModel<Transaction>> transactionResources = transactions.stream()
+	                    .map(transaction -> {
+	                        EntityModel<Transaction> entityModel = EntityModel.of(transaction,
+	                                linkTo(methodOn(TransactionController.class)
+	                                        .getTransactionById(transaction.getId(), authentication)).withSelfRel(),
+	                                linkTo(methodOn(TransactionController.class)
+	                                        .getUserTransactions(authentication)).withRel("user-transactions")
+	                        );
+	                        return entityModel;
+	                    })
+	                    .collect(Collectors.toList());
 
-
-			return ResponseEntity.ok(CollectionModel.of(transactionResources,
-					linkTo(methodOn(TransactionController.class).getUserTransactions(authentication)).withSelfRel()
-					));
-		} else {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-		}
-	}
-
+	            return ResponseEntity.ok(CollectionModel.of(transactionResources,
+	                    linkTo(methodOn(TransactionController.class).getUserTransactions(authentication)).withSelfRel()
+	            ));
+	        } else {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+	        }
+	    }
 	@GetMapping("/user/{userId}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<CollectionModel<EntityModel<Transaction>>> getTransactionsByUserId(@PathVariable Long userId) {
 		List<Transaction> transactions = transactionService.getTransactionsByUserId(userId);
 
 		if (transactions.isEmpty()) {
-			System.out.println("Error:Transactions not found.Please check the ID and try again");
+			 logger.warn("Transactions not found for user ID: {}", userId);
 			return ResponseEntity.notFound().build();
 		}
          
 		List<EntityModel<Transaction>> transactionResources = transactions.stream()
 				.map(transaction -> EntityModel.of(transaction,
 						linkTo(methodOn(TransactionController.class).getTransactionsByUserId(userId)).withSelfRel(),
-						linkTo(methodOn(TransactionController.class).getAllTransactions()).withRel("all-transactions")))
+						linkTo(methodOn(TransactionController.class).getAllTransactions()).withRel(ALL_TRANSACTIONS_REL)))
 				.collect(Collectors.toList());
 
 		CollectionModel<EntityModel<Transaction>> collectionModel = CollectionModel.of(transactionResources,
@@ -104,8 +101,8 @@ public class TransactionController {
 		List<EntityModel<Transaction>> transactionResources = transactions.stream()
 				.map(transaction -> EntityModel.of(transaction,
 						linkTo(methodOn(TransactionController.class).getTransactionById(transaction.getId(), null)).withSelfRel(),
-						linkTo(methodOn(TransactionController.class).getAllTransactions()).withRel("all-transactions")
-						))
+						linkTo(methodOn(TransactionController.class).getAllTransactions()).withRel(ALL_TRANSACTIONS_REL)
+		                ))
 				.collect(Collectors.toList());
 
 		return ResponseEntity.ok(CollectionModel.of(transactionResources,
@@ -156,7 +153,7 @@ public class TransactionController {
 
 		@DeleteMapping("/{id}")
 		@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-		public ResponseEntity<?> deleteTransaction(@PathVariable Long id) {
+		public ResponseEntity<Object> deleteTransaction(@PathVariable Long id) {
 			Optional<Transaction> transactionOpt = transactionService.getTransactionById(id);
 
 			if (transactionOpt.isPresent()) {

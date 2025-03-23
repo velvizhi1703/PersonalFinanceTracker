@@ -1,7 +1,5 @@
 package com.tus.finance.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,8 +14,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import java.lang.reflect.Method;
-import java.security.Key;
 @ExtendWith(MockitoExtension.class)
 class JwtUtilTest {
 
@@ -67,25 +63,6 @@ class JwtUtilTest {
         assertFalse(isValid);
     }
 
-//    @Test
-//    void testValidateToken_ExpiredToken() throws Exception {
-//        Method method = JwtUtil.class.getDeclaredMethod("getSigningKey");
-//        method.setAccessible(true);
-//        Key key = (Key) method.invoke(jwtUtil);
-//
-//        String expiredToken = Jwts.builder()
-//                .setSubject(email)
-//                .setIssuedAt(new Date(System.currentTimeMillis() - 1000 * 60 * 60))
-//                .setExpiration(new Date(System.currentTimeMillis() - 1000))
-//                .signWith(key, io.jsonwebtoken.SignatureAlgorithm.HS256)
-//                .compact();
-//
-//        when(userDetails.getUsername()).thenReturn(email);
-//
-//        boolean isValid = jwtUtil.validateToken(expiredToken, userDetails);
-//
-//       // assertFalse(isValid);
-//    }
     @Test
     void testExtractRoles_Success() {
         List<String> extractedRoles = jwtUtil.extractRoles(generatedToken);

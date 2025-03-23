@@ -5,12 +5,14 @@ C:\PersonalFinanceTracker\src\main\java\com\tus\finance\model\TransactionType.ja
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\controller\BudgetController.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\FinanceApplication.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\controller\AuthController.java
+C:\PersonalFinanceTracker\src\main\java\com\tus\finance\exception\UserAlreadyExistsException.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\filter\JwtAuthenticationFilter.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\dto\LoginRequest.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\model\Role.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\service\TransactionService.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\dto\UserAllDTO.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\controller\UserController.java
+C:\PersonalFinanceTracker\src\main\java\com\tus\finance\dto\LoginResponseDto.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\model\User.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\dto\TransactionDTO.java
 C:\PersonalFinanceTracker\src\main\java\com\tus\finance\repository\UserRepository.java

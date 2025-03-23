@@ -1,6 +1,8 @@
 package com.tus.finance.filter;
 
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -19,11 +21,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
+	private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 	private final JwtUtil jwtUtil;
 	private final UserDetailsService userDetailsService;
 
-	public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
 		this.jwtUtil = jwtUtil;
 		this.userDetailsService = userDetailsService;
 	}
@@ -37,12 +39,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			filterChain.doFilter(request, response);
 			return;
 		}
-		String token = authHeader.substring(7);
-		System.out.println("Extracted Token: " + token);
+	    String token = authHeader.substring(7);
+	    log.debug("Extracted Token: {}", token);
 
 		try {
-			String username = jwtUtil.extractUsername(token);
-			System.out.println("Extracted Username: " + username);
+			 String username = jwtUtil.extractUsername(token);
+			 log.debug("Extracted Username: {}", username);
 
 			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
@@ -53,13 +55,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 							);
 					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 					SecurityContextHolder.getContext().setAuthentication(authToken);
-					System.out.println("Authentication successful for user: " + username);
+					log.info("Authentication successful for user: {}", username);
 				} else {
-					System.out.println("Token validation failed!");
+					log.warn("Token validation failed!");
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("JWT Authentication failed: " + e.getMessage());
+			log.error("JWT Authentication failed: {}", e.getMessage());
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			return;
 		}

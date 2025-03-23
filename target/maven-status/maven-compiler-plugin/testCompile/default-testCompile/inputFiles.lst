@@ -1,0 +1,12 @@
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\controller\UserControllerTest.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\service\UserServiceTest.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\filter\JwtAuthenticationFilterTest.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\security\JwtUtilTest.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\service\BudgetServiceTest.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\config\SecurityConfigTest.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\controller\TransactionContollerTest.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\controller\BudgetControllerTest.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\FinanceApplicationTests.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\controller\AuthControllerTest.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\controller\CustomerUserDetailsServiceTest.java
+C:\PersonalFinanceTracker\src\test\java\com\tus\finance\service\TransactionServiceTest.java

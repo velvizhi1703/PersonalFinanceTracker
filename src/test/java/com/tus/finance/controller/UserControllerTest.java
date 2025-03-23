@@ -1,6 +1,5 @@
 package com.tus.finance.controller;
 
-import com.tus.finance.dto.UserAllDTO;
 import com.tus.finance.dto.UserDTO;
 import com.tus.finance.exception.UserAlreadyExistsException;
 import com.tus.finance.model.Role;
@@ -12,10 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -29,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
-
+     
     private MockMvc mockMvc;
 
     @Mock
@@ -86,49 +83,6 @@ class UserControllerTest {
                 .andExpect(status().isConflict());
     }
 
-//    @Test
-//    @WithMockUser(username = "vel@example.com", roles = {"USER"})
-//    void testGetCurrentUser_Success() throws Exception {
-//        when(userService.findByEmail("vel@example.com")).thenReturn(Optional.of(testUser));
-//
-//        mockMvc.perform(get("/api/users/me"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.email").value("vel@example.com"));
-//    }
-
-//    @Test
-//    @WithMockUser(username = "nonexistent@example.com", roles = {"USER"})
-//    void testGetCurrentUser_NotFound() throws Exception {
-//        when(userService.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
-//
-//        mockMvc.perform(get("/api/users/me"))
-//                .andExpect(status().isNotFound());
-//    }
-
-
-//    @Test
-//    @WithMockUser(username = "admin@example.com", roles = {"ADMIN"})
-//    void testToggleUserStatus_Success() throws Exception {
-//        Map<String, String> requestBody = Map.of("status", "Disabled");
-//        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-//
-//        mockMvc.perform(put("/api/users/1/status")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content("{\"status\":\"Disabled\"}"))
-//                .andExpect(status().isOk());
-//    }
-
-//    @Test
-//    @WithMockUser(username = "admin@example.com", roles = {"ADMIN"})
-//    void testToggleUserStatus_UserNotFound() throws Exception {
-//        Map<String, String> requestBody = Map.of("status", "Disabled");
-//        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-//
-//        mockMvc.perform(put("/api/users/1/status")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content("{\"status\":\"Disabled\"}"))
-//                .andExpect(status().isNotFound());
-//    }
 
     @Test
     @WithMockUser(username = "admin@example.com", roles = {"ADMIN"})

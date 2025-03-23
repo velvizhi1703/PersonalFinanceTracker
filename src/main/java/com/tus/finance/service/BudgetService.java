@@ -6,8 +6,6 @@ import com.tus.finance.model.Budget;
 import com.tus.finance.model.User;
 import com.tus.finance.repository.BudgetRepository;
 import com.tus.finance.repository.UserRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -17,7 +15,7 @@ import java.util.Optional;
 
 @Service
 public class BudgetService {
-	@Autowired
+	
 	private final BudgetRepository budgetRepository;
 	private final UserRepository userRepository;
 	public BudgetService(BudgetRepository budgetRepository,UserRepository userRepository) {
@@ -25,7 +23,7 @@ public class BudgetService {
 		this.userRepository = userRepository;
 	}
 
-	public ResponseEntity<ApiResponseDto<?>> createBudget(Long userId, BudgetRequest request) {
+	public ResponseEntity<ApiResponseDto<Budget>> createBudget(Long userId, BudgetRequest request) {
 		Optional<User> userOpt = userRepository.findById(userId);
 
 		if (userOpt.isEmpty()) {
@@ -56,7 +54,7 @@ public class BudgetService {
 				.body(new ApiResponseDto<>(true, "Budget created successfully", newBudget));
 	}
 
-	public ResponseEntity<ApiResponseDto<?>> getBudgetByMonth(Long userId, int month, int year) {
+	public ResponseEntity<ApiResponseDto<Budget>> getBudgetByMonth(Long userId, int month, int year) {
 		Optional<Budget> budget = budgetRepository.findByUserIdAndMonthAndYear(userId, month, year);
 
 		if (budget.isEmpty()) {

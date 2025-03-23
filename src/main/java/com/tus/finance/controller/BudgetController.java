@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +26,7 @@ public class BudgetController {
     }
     @PostMapping("/create")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponseDto<?>> createBudget(@RequestBody BudgetRequest budgetRequest, Authentication authentication) {
+    public ResponseEntity<ApiResponseDto<Budget>> createBudget(@RequestBody BudgetRequest budgetRequest, Authentication authentication) {
         String userEmail = authentication.getName();
         Optional<User> user = userService.findByEmail(userEmail);
 
@@ -37,12 +36,13 @@ public class BudgetController {
 
         return budgetService.createBudget(user.get().getId(), budgetRequest);
     }
+
     @GetMapping("/get")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> getBudgetByMonth(
-            @RequestParam("month") int month,
-            @RequestParam("year") int year,
-            Authentication authentication) {
+    public ResponseEntity<ApiResponseDto<Budget>> getBudgetByMonth(
+        @RequestParam("month") int month,
+        @RequestParam("year") int year,
+        Authentication authentication) {
 
         String userEmail = authentication.getName();
         User user = userService.findByEmail(userEmail)
@@ -51,10 +51,10 @@ public class BudgetController {
         Optional<Budget> budgetOpt = budgetService.getBudgetByMonthAndYear(user.getId(), month, year);
 
         if (budgetOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", "No budget found for this month & year"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponseDto<>(false, "No budget found for this month & year", null));
         }
 
-        return ResponseEntity.ok(budgetOpt.get());
+        return ResponseEntity.ok(new ApiResponseDto<>(true, "Budget found", budgetOpt.get()));
     }
 
     @GetMapping("/all")

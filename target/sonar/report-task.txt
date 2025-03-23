@@ -1,0 +1,6 @@
+projectKey=PersonalFinanceTracker
+serverUrl=http://localhost:9000
+serverVersion=25.3.0.104237
+dashboardUrl=http://localhost:9000/dashboard?id=PersonalFinanceTracker
+ceTaskId=d60752a2-9b7c-47cc-9ecb-e8e511c99e3e
+ceTaskUrl=http://localhost:9000/api/ce/task?id=d60752a2-9b7c-47cc-9ecb-e8e511c99e3e

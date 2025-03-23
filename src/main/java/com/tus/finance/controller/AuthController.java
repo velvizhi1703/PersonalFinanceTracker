@@ -5,7 +5,6 @@ import com.tus.finance.dto.LoginRequest;
 import com.tus.finance.dto.LoginResponseDto;
 import com.tus.finance.model.User;
 import com.tus.finance.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,18 +12,20 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 	private final JwtUtil jwtUtil;
 	private final AuthenticationManager authenticationManager;
-	@Autowired
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
 
 	public AuthController(JwtUtil jwtUtil, AuthenticationManager authenticationManager,UserRepository userRepository) {
 		this.jwtUtil = jwtUtil;
@@ -34,23 +35,24 @@ public class AuthController {
 	@PostMapping("/login")
 	public ResponseEntity<EntityModel<LoginResponseDto>> login(@RequestBody LoginRequest request) {
 		try {
-			System.out.println("DEBUG: Login attempt - " + request.getEmail());
+			logger.debug("Login attempt - {}", request.getEmail());
 			User user = userRepository.findByEmail(request.getEmail())
 					.orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-			if ("Disabled".equalsIgnoreCase(user.getStatus())) {
-				return ResponseEntity.status(HttpStatus.FORBIDDEN)
-						.body(EntityModel.of(new LoginResponseDto(), 
-								linkTo(methodOn(AuthController.class).login(request)).withSelfRel()
-								));
-			}
+			  if ("Disabled".equalsIgnoreCase(user.getStatus())) {
+	                logger.warn("Login attempt for disabled user: {}", request.getEmail());
+	                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+	                        .body(EntityModel.of(new LoginResponseDto(), 
+	                                linkTo(methodOn(AuthController.class).login(request)).withSelfRel()
+	                                ));
+	            }
 
 			Authentication authentication = authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
 					);
-			System.out.println("DEBUG: Authentication success for " + request.getEmail());
+			  logger.debug("Authentication success for {}", request.getEmail());
 
-			UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+		//UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
 			String role = authentication.getAuthorities()
 					.stream()
@@ -71,7 +73,7 @@ public class AuthController {
 
 			return ResponseEntity.ok(entityModel);
 		} catch (Exception e) {
-			System.out.println("ERROR: " + e.getMessage());
+			logger.error("Error during login: {}", e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(EntityModel.of(new LoginResponseDto(), 
 							linkTo(methodOn(AuthController.class).login(request)).withSelfRel()

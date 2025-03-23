@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
@@ -21,7 +21,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -61,12 +60,14 @@ class BudgetControllerTest {
         when(authentication.getName()).thenReturn("test@example.com");
         when(userService.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
         when(budgetService.createBudget(any(Long.class), any(BudgetRequest.class)))
-                .thenReturn(ResponseEntity.ok(new ApiResponseDto<>(true, "Budget created", null)));
+                .thenReturn(ResponseEntity.ok(new ApiResponseDto<>(true, "Budget created", mockBudget)));
 
-        ResponseEntity<ApiResponseDto<?>> response = budgetController.createBudget(budgetRequest, authentication);
+        ResponseEntity<ApiResponseDto<Budget>> response = budgetController.createBudget(budgetRequest, authentication);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
         assertTrue(response.getBody().isSuccess());
+        assertEquals("Budget created", response.getBody().getMessage());
+        assertEquals(mockBudget, response.getBody().getData());
     }
 
     @Test
@@ -74,37 +75,13 @@ class BudgetControllerTest {
         when(authentication.getName()).thenReturn("test@example.com");
         when(userService.findByEmail(anyString())).thenReturn(Optional.empty());
 
-        ResponseEntity<ApiResponseDto<?>> response = budgetController.createBudget(budgetRequest, authentication);
+        ResponseEntity<ApiResponseDto<Budget>> response = budgetController.createBudget(budgetRequest, authentication);
 
-        assertEquals(401, response.getStatusCodeValue());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCodeValue());
         assertFalse(response.getBody().isSuccess());
         assertEquals("User not found", response.getBody().getMessage());
     }
 
-//    @Test
-//    void getBudgetByMonth_Success() {
-//        when(authentication.getName()).thenReturn("test@example.com");
-//        when(userService.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
-//        when(budgetService.getBudgetByMonth(anyInt(), anyInt(), anyInt()))
-//                .thenReturn(Optional.of(mockBudget));
-//
-//        ResponseEntity<?> response = budgetController.getBudgetByMonth(3, 2025, authentication);
-//
-//        assertEquals(200, response.getStatusCodeValue());
-//        assertEquals(mockBudget, response.getBody());
-//    }
-//
-//    @Test
-//    void getBudgetByMonth_NotFound() {
-//        when(authentication.getName()).thenReturn("test@example.com");
-//        when(userService.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
-//        when(budgetService.getBudgetByMonth(anyInt(), anyInt(), anyInt()))
-//                .thenReturn(Optional.empty());
-//
-//        ResponseEntity<?> response = budgetController.getBudgetByMonth(3, 2025, authentication);
-//
-//        assertEquals(404, response.getStatusCodeValue());
-//    }
 
     @Test
     void getAllBudgets_Success() {

@@ -63,7 +63,7 @@ class BudgetServiceTest {
         when(budgetRepository.findByUserIdAndMonthAndYear(1L, 3, 2025)).thenReturn(Optional.empty());
         when(budgetRepository.save(any(Budget.class))).thenReturn(testBudget);
 
-        ResponseEntity<ApiResponseDto<?>> response = budgetService.createBudget(1L, testBudgetRequest);
+        ResponseEntity<ApiResponseDto<Budget>> response = budgetService.createBudget(1L, testBudgetRequest);
 
         assertNotNull(response);
         assertEquals(201, response.getStatusCodeValue());
@@ -75,7 +75,7 @@ class BudgetServiceTest {
     void testCreateBudget_UserNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<ApiResponseDto<?>> response = budgetService.createBudget(1L, testBudgetRequest);
+        ResponseEntity<ApiResponseDto<Budget>> response = budgetService.createBudget(1L, testBudgetRequest);
 
         assertNotNull(response);
         assertEquals(400, response.getStatusCodeValue());
@@ -88,7 +88,7 @@ class BudgetServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(budgetRepository.findByUserIdAndMonthAndYear(1L, 3, 2025)).thenReturn(Optional.of(testBudget));
 
-        ResponseEntity<ApiResponseDto<?>> response = budgetService.createBudget(1L, testBudgetRequest);
+        ResponseEntity<ApiResponseDto<Budget>> response = budgetService.createBudget(1L, testBudgetRequest);
 
         assertNotNull(response);
         assertEquals(400, response.getStatusCodeValue());
@@ -100,7 +100,7 @@ class BudgetServiceTest {
     void testGetBudgetByMonth_Success() {
         when(budgetRepository.findByUserIdAndMonthAndYear(1L, 3, 2025)).thenReturn(Optional.of(testBudget));
 
-        ResponseEntity<ApiResponseDto<?>> response = budgetService.getBudgetByMonth(1L, 3, 2025);
+        ResponseEntity<ApiResponseDto<Budget>> response = budgetService.getBudgetByMonth(1L, 3, 2025);
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
@@ -112,7 +112,7 @@ class BudgetServiceTest {
     void testGetBudgetByMonth_NotFound() {
         when(budgetRepository.findByUserIdAndMonthAndYear(1L, 3, 2025)).thenReturn(Optional.empty());
 
-        ResponseEntity<ApiResponseDto<?>> response = budgetService.getBudgetByMonth(1L, 3, 2025);
+        ResponseEntity<ApiResponseDto<Budget>> response = budgetService.getBudgetByMonth(1L, 3, 2025);
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());

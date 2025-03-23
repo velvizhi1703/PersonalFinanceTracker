@@ -1,5 +1,7 @@
 package com.tus.finance.config;
 import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,8 +19,8 @@ import com.tus.finance.service.CustomUserDetailsService;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-	private final CustomUserDetailsService customUserDetailsService;
+	private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+    private final CustomUserDetailsService customUserDetailsService;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 	public SecurityConfig(CustomUserDetailsService customUserDetailsService,JwtAuthenticationFilter jwtAuthenticationFilter) {
@@ -46,10 +48,10 @@ public class SecurityConfig {
 		.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 		.exceptionHandling()
 		.accessDeniedHandler((request, response, accessDeniedException) -> {
-			System.out.println("Access Denied for User: " + request.getUserPrincipal());
-			System.out.println("Required Role: ROLE_ADMIN");
-			response.sendError(HttpServletResponse.SC_FORBIDDEN);
-		});
+			 logger.warn("Access Denied for User: {}", request.getUserPrincipal());
+             logger.warn("Required Role: ROLE_ADMIN");
+             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+         });
 
 		return http.build();
 	}

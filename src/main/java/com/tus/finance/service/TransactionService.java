@@ -4,7 +4,6 @@ import com.tus.finance.model.Transaction;
 import com.tus.finance.model.User;
 import com.tus.finance.repository.TransactionRepository;
 import com.tus.finance.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +11,6 @@ import java.util.Optional;
 
 @Service
 public class TransactionService {
-	@Autowired
 	private TransactionRepository transactionRepository;
 	private final UserRepository userRepository;
 
