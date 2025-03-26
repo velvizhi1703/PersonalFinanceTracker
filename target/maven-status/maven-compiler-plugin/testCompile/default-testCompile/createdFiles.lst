@@ -1,5 +1,6 @@
-com\tus\finance\filter\JwtAuthenticationFilterTest.class
 com\tus\finance\security\JwtUtilTest.class
+com\tus\finance\selenium\UITests.class
+com\tus\finance\filter\JwtAuthenticationFilterTest.class
 com\tus\finance\controller\BudgetControllerTest.class
 com\tus\finance\controller\UserControllerTest.class
 com\tus\finance\service\UserServiceTest.class

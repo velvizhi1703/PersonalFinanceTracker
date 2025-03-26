@@ -1,5 +1,4 @@
 package com.tus.finance.service;
-
 import com.tus.finance.model.Transaction;
 import com.tus.finance.model.User;
 import com.tus.finance.repository.TransactionRepository;
