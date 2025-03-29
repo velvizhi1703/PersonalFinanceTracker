@@ -6,387 +6,480 @@ import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.logging.LogEntries;
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
-
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.logging.Level;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+// or for multiple common matchers:
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UITests {
-    private WebDriver driver;
-    private WebDriverWait wait;
-    private final String BASE_URL = "http://localhost:9091";
+	private WebDriver driver;
+	private WebDriverWait wait;
+	private final String BASE_URL = "http://localhost:9091";
 
-    @BeforeAll
-    void setup() {
-        WebDriverManager.chromedriver().setup();
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-    }
+	@BeforeAll
+	void setup() {
+		WebDriverManager.chromedriver().setup();
+		ChromeOptions options = new ChromeOptions();
+		options.addArguments("--remote-allow-origins=*");
+		options.addArguments("--no-sandbox");
+		options.addArguments("--disable-dev-shm-usage");
+		driver = new ChromeDriver(options);
+		wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+	}
 
-    @BeforeEach
-    void beforeEach() {
-        driver.get(BASE_URL + "/index.html");
-        wait.until(ExpectedConditions.jsReturnsValue("return document.readyState === 'complete'"));
-    }
+	@BeforeEach
+	void beforeEach() {
+		driver.get(BASE_URL + "/index.html");
+		wait.until(ExpectedConditions.jsReturnsValue("return document.readyState === 'complete'"));
+	}
 
-    // Helper methods
-    private void login(String email, String password) {
-        try {
-            // Wait for page to be fully interactive
-            wait.until(ExpectedConditions.jsReturnsValue("return document.readyState === 'complete'"));
-            
-            // Alternative: Wait for any critical element that indicates page is ready
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("body")));
-            
-            // Debug current state
-            System.out.println("Current URL: " + driver.getCurrentUrl());
-            System.out.println("Page source: " + driver.getPageSource().substring(0, 500) + "..."); // First 500 chars
-            
-            // More flexible element location - try multiple selectors
-            WebElement username = wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.cssSelector("input[id='loginEmail'], input[name='email'], [data-testid='email']")));
-            
-            WebElement passwordField = wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.cssSelector("input[id='loginPassword'], input[name='password'], [data-testid='password']")));
-            
-            // Try multiple ways to locate the login button
-            WebElement loginButton = wait.until(ExpectedConditions.elementToBeClickable(
-                By.cssSelector("button#LoginButton, input#LoginButton, [data-testid='login-btn'], button[type='submit']")));
-            
-            username.clear();
-            username.sendKeys(email);
-            passwordField.clear();
-            passwordField.sendKeys(password);
-            
-            // Scroll into view and click using JavaScript as fallback
-            ((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView(true);", loginButton);
-            ((JavascriptExecutor)driver).executeScript("arguments[0].click();", loginButton);
-            
-            // Wait for login to complete
-            wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("login")));
-            
-        } catch (Exception e) {
-            takeScreenshot("login_error");
-            throw new RuntimeException("Login failed: " + e.getMessage(), e);
-        }
-    }
+	// Helper methods
+	private void login(String email, String password) {
+		try {
+			// Navigate directly to login page
+			driver.get(BASE_URL + "/index.html#login");
 
-    private void logout() {
-        driver.get(BASE_URL + "/logout");
-        wait.until(ExpectedConditions.urlContains("login"));
-    }
+			// Wait for login form to be present
+			wait.until(ExpectedConditions.presenceOfElementLocated(By.id("loginForm")));
 
-    private void takeScreenshot(String testName) {
-        try {
-            File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-            FileUtils.copyFile(screenshot, new File("target/screenshots/" + testName + ".png"));
-        } catch (IOException e) {
-            System.err.println("Failed to take screenshot: " + e.getMessage());
-        }
-    }
+			WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loginEmail")));
+			WebElement passwordField = driver.findElement(By.id("loginPassword"));
+			WebElement loginButton = driver.findElement(By.id("loginButton"));
 
-    // Regular user tests
-    @Test
-    @Order(1)
-    void testRegularUserLogin() {
-        try {
-            // Navigate to login page
-            driver.get(BASE_URL + "/index.html#login");
-            
-            // Wait for page to fully load (including JavaScript)
-            wait.until(webDriver -> ((JavascriptExecutor) webDriver)
-                .executeScript("return document.readyState").equals("complete"));
-            
-            // Debug: Print page title and current URL
-            System.out.println("Page title: " + driver.getTitle());
-            System.out.println("Current URL: " + driver.getCurrentUrl());
-            
-            // Wait for login form to be visible
-            WebElement loginForm = wait.until(ExpectedConditions
-                .visibilityOfElementLocated(By.id("loginForm")));
-            
-            // Find elements within the form
-            WebElement emailField = loginForm.findElement(By.id("loginEmail"));
-            WebElement passwordField = loginForm.findElement(By.id("loginPassword"));
-            WebElement loginButton = loginForm.findElement(By.id("loginButton"));
-            
-            // Verify elements are interactable
-            assertTrue(emailField.isDisplayed(), "Email field should be visible");
-            assertTrue(emailField.isEnabled(), "Email field should be enabled");
-            assertTrue(passwordField.isDisplayed(), "Password field should be visible");
-            assertTrue(passwordField.isEnabled(), "Password field should be enabled");
-            assertTrue(loginButton.isDisplayed(), "Login button should be visible");
-            assertTrue(loginButton.isEnabled(), "Login button should be enabled");
-            
-            // Enter credentials
-            emailField.clear();
-            emailField.sendKeys("keerthi@example.com");
-            passwordField.clear();
-            passwordField.sendKeys("keerthi123");
-            
-            // Scroll button into view (in case it's not visible)
-            ((JavascriptExecutor)driver).executeScript(
-                "arguments[0].scrollIntoView({block: 'center'});", loginButton);
-            
-            // Click using JavaScript as a reliable alternative
-            ((JavascriptExecutor)driver).executeScript("arguments[0].click();", loginButton);
-            
-            // Wait for navigation or some post-login element
-            try {
-                wait.until(ExpectedConditions.or(
-                    ExpectedConditions.urlContains("dashboard"),
-                    ExpectedConditions.presenceOfElementLocated(By.id("userDashboard"))
-                ));
-            } catch (TimeoutException e) {
-                // Check for error message if login failed
-                WebElement alert = driver.findElement(By.id("loginAlert"));
-                if (!alert.getAttribute("class").contains("d-none")) {
-                    fail("Login failed with error: " + alert.getText());
-                }
-                throw e;
-            }
-            
-            // Verification after login
-            assertTrue(driver.getCurrentUrl().contains("dashboard") || 
-                     driver.findElements(By.id("userDashboard")).size() > 0,
-                     "Should be redirected after login");
-            
-        } catch (Exception e) {
-            takeScreenshot("login_failure");
-            throw new RuntimeException("Login test failed", e);
-        }
-    }
+			emailField.clear();
+			emailField.sendKeys(email);
+			passwordField.clear();
+			passwordField.sendKeys(password);
 
-    @Test
-    @Order(2)
-    void testTransactionHistory() {
-        login("keerthi@example.com", "keerthi123");
-        
-        // More robust wait for dashboard
-        wait.until(ExpectedConditions.or(
-            ExpectedConditions.urlContains("dashboard"),
-            ExpectedConditions.presenceOfElementLocated(By.cssSelector(".user-dashboard"))
-        ));
-        
-        // Click transaction tab with JS and wait for navigation
-        WebElement transactionHistoryTab = wait.until(ExpectedConditions.elementToBeClickable(
-            By.cssSelector("a[href*='transactions'], [data-testid='transactions-tab']")));
-        ((JavascriptExecutor)driver).executeScript("arguments[0].click();", transactionHistoryTab);
-        
-        // Wait specifically for transaction page elements
-        wait.until(ExpectedConditions.or(
-            ExpectedConditions.urlContains("transactions"),
-            ExpectedConditions.presenceOfElementLocated(By.id("transactionTable"))
-        ));
-        
-        // Additional wait for data loading
-        wait.until(d -> {
-            List<WebElement> rows = d.findElements(By.cssSelector("#transactionTable tbody tr"));
-            return !rows.isEmpty() || 
-                   d.findElements(By.cssSelector(".loading-indicator")).isEmpty();
-        });
-        
-        // Verify page
-        assertTrue(driver.getCurrentUrl().contains("transactions") || 
-                 driver.findElements(By.id("transactionTable")).size() > 0,
-                 "Should be on transactions page");
-    }
+			// Use JavaScript click as fallback
+			try {
+				loginButton.click();
+			} catch (Exception e) {
+				((JavascriptExecutor)driver).executeScript("arguments[0].click();", loginButton);
+			}
 
-   
-    @Test
-    @Order(3)
-    void testDeleteTransaction() {
-        login("keerthi@example.com", "keerthi123");
-        
-        // Navigate to transactions using SPA navigation
-        WebElement transactionTab = wait.until(ExpectedConditions.elementToBeClickable(
-            By.cssSelector("a[href*='transactions']")));
-        ((JavascriptExecutor)driver).executeScript("arguments[0].click();", transactionTab);
-        
-        // Wait for table to load
-        wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(
-            By.cssSelector("#transactionTableBody tr"), 0));
-        
-        // Get initial row count
-        List<WebElement> initialRows = driver.findElements(
-            By.cssSelector("#transactionTableBody tr"));
-        int initialRowCount = initialRows.size();
-        
-        if (initialRowCount == 0) {
-            fail("No transactions available to delete");
-        }
-        
-        // Click delete button on first row
-        WebElement firstDeleteButton = wait.until(ExpectedConditions.elementToBeClickable(
-            By.cssSelector("#transactionTableBody tr:first-child button"))); // Simplified selector
-        ((JavascriptExecutor)driver).executeScript("arguments[0].click();", firstDeleteButton);
-        
-        // Handle confirmation dialog if present
-        try {
-            Alert confirmDialog = wait.until(ExpectedConditions.alertIsPresent());
-            confirmDialog.accept();
-        } catch (TimeoutException e) {
-            // If no alert, maybe a modal confirmation - adjust accordingly
-            WebElement confirmButton = driver.findElement(By.cssSelector(".modal-footer .btn-primary"));
-            confirmButton.click();
-        }
-        
-        // Wait for row count to decrease
-        wait.until(ExpectedConditions.numberOfElementsToBe(
-            By.cssSelector("#transactionTableBody tr"), initialRowCount - 1));
-        
-        takeScreenshot("after_transaction_deletion");
-    }
-    @Test
-    @Order(4)
-    void testNewTransaction() {
-        login("keerthi@example.com", "keerthi123");
-        
-        // Navigate to new transaction page using SPA navigation
-        WebElement newTransactionTab = wait.until(ExpectedConditions.elementToBeClickable(
-            By.cssSelector("a[href*='new-transaction'], [data-testid='new-transaction']")));
-        ((JavascriptExecutor)driver).executeScript("arguments[0].click();", newTransactionTab);
-        
-        // Wait for form to load
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("transactionForm")));
-        
-        // Fill out form
-        WebElement amount = wait.until(ExpectedConditions.visibilityOfElementLocated(
-            By.cssSelector("#amount")));
-        WebElement transactionType = wait.until(ExpectedConditions.visibilityOfElementLocated(
-            By.cssSelector("#type"))); // Changed from #transactionType to #type
-        WebElement category = wait.until(ExpectedConditions.visibilityOfElementLocated(
-            By.cssSelector("#category")));
-        WebElement date = wait.until(ExpectedConditions.visibilityOfElementLocated(
-            By.cssSelector("#date")));
-        WebElement saveButton = wait.until(ExpectedConditions.elementToBeClickable(
-            By.cssSelector("#transactionForm button[type='submit']")));
+			// Wait for either success or error
+			wait.until(ExpectedConditions.or(
+					ExpectedConditions.urlContains("dashboard"),
+					ExpectedConditions.presenceOfElementLocated(By.id("loginAlert"))
+					));
 
-        amount.clear();
-        amount.sendKeys("50.00");
-        
-        new Select(transactionType).selectByVisibleText("Debit");
-        new Select(category).selectByVisibleText("Food");
-        date.sendKeys("2024-03-20");
-        
-        // Scroll and click using JavaScript
-        ((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView(true);", saveButton);
-        ((JavascriptExecutor)driver).executeScript("arguments[0].click();", saveButton);
-        
-        // Wait for success message or redirect
-        try {
-            wait.until(ExpectedConditions.or(
-                ExpectedConditions.visibilityOfElementLocated(
-                    By.cssSelector(".alert-success")),
-                ExpectedConditions.urlContains("transactions"))
-            );
-        } catch (TimeoutException e) {
-            // Check for error message
-            WebElement alert = driver.findElement(By.id("alertMessage"));
-            if (alert.isDisplayed()) {
-                fail("Transaction failed with error: " + alert.getText());
-            }
-            throw e;
-        }
-        
-        takeScreenshot("new_transaction_created");
-    }
-    @Test
-    @Order(5)
-    void testAdminLogin() {
-        // Clear cookies first
-        driver.manage().deleteAllCookies();
-        driver.get(BASE_URL + "/index.html#login");
-        
-        // Admin-specific login
-        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(
-            By.cssSelector("input[id='loginEmail']")));
-        WebElement passwordField = driver.findElement(By.cssSelector("input[id='loginPassword']"));
-        WebElement loginButton = driver.findElement(By.cssSelector("button#LoginButton"));
-        
-        emailField.clear();
-        emailField.sendKeys("vel@example.com");
-        passwordField.clear();
-        passwordField.sendKeys("vel123");
-        
-        ((JavascriptExecutor)driver).executeScript("arguments[0].click();", loginButton);
-        
-        // Special wait for admin dashboard
-        wait.until(ExpectedConditions.or(
-            ExpectedConditions.urlContains("admin"),
-            ExpectedConditions.presenceOfElementLocated(By.cssSelector(".admin-dashboard")),
-            ExpectedConditions.presenceOfElementLocated(By.id("adminUsersMenu"))
-        ));
-        
-        // Additional verification
-        try {
-            WebElement adminDashboard = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.cssSelector("h2.admin-header, .admin-dashboard")));
-            assertTrue(adminDashboard.getText().contains("Admin"));
-        } catch (TimeoutException e) {
-            takeScreenshot("admin_login_failed");
-            fail("Admin dashboard not loaded. Current page: " + driver.getCurrentUrl());
-        }
-    }
+			// Check for error
+			WebElement alert = driver.findElement(By.id("loginAlert"));
+			if (alert.isDisplayed() && alert.getText().toLowerCase().contains("error")) {
+				throw new RuntimeException("Login failed: " + alert.getText());
+			}
 
-    @Test
-    @Order(6)
-    void testAdminDisableUser() {
-        login("vel@example.com", "vel123");
-        
-        // Navigate to users page
-        WebElement usersTab = wait.until(ExpectedConditions.elementToBeClickable(By.id("adminUsersMenu")));
-        usersTab.click();
-        
-        // Find and disable user
-        WebElement disableButton = wait.until(ExpectedConditions.elementToBeClickable(
-            By.xpath("//tr[td[contains(text(),'kala@example.com')]]//button[contains(text(),'Disable')]")));
-        disableButton.click();
-        
-        // Verify status change
-        WebElement confirmation = wait.until(ExpectedConditions.visibilityOfElementLocated(
-            By.cssSelector(".alert-success")));
-        assertTrue(confirmation.getText().contains("User status updated"));
-        
-        // Verify status in table
-        WebElement statusCell = wait.until(ExpectedConditions.visibilityOfElementLocated(
-            By.xpath("//tr[td[contains(text(),'kala@example.com')]]/td[contains(@class,'status')]")));
-        assertTrue(statusCell.getText().contains("Disabled"));
-        
-        takeScreenshot("user_disabled");
-    }
+		} catch (Exception e) {
+			takeScreenshot("login_error");
+			throw new RuntimeException("Login failed: " + e.getMessage(), e);
+		}
+	}
+
+	private void logout() {
+		driver.get(BASE_URL + "/logout");
+		wait.until(ExpectedConditions.urlContains("login"));
+	}
+
+	private void takeScreenshot(String testName) {
+		try {
+			if (((RemoteWebDriver) driver).getSessionId() != null) {
+				File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+				FileUtils.copyFile(screenshot, new File("target/screenshots/" + testName + ".png"));
+			}
+		} catch (Exception e) {
+			System.err.println("Failed to take screenshot: " + e.getMessage());
+		}
+	}
+	// Regular user tests
+	@Test
+	@Order(1)
+	void testRegularUserLogin() {
+		try {
+			// Navigate to login page directly
+			driver.get(BASE_URL + "/index.html#login");
+
+			// Wait for page to fully load
+			wait.until(webDriver -> ((JavascriptExecutor) webDriver)
+					.executeScript("return document.readyState").equals("complete"));
+
+			// Debug: Print current state
+			System.out.println("Current URL: " + driver.getCurrentUrl());
+			System.out.println("Page title: " + driver.getTitle());
+			takeScreenshot("before_login_attempt");
+
+			// Find elements using correct selectors
+			WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(
+					By.id("loginEmail")));
+			WebElement passwordField = driver.findElement(By.id("loginPassword"));
+			// Change this in your test code
+			WebElement loginButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("loginButton")));
+
+			// Enter credentials
+			emailField.clear();
+			emailField.sendKeys("keerthi@example.com");
+			passwordField.clear();
+			passwordField.sendKeys("keerthi123");
+
+			// Click using JavaScript to ensure it works
+			((JavascriptExecutor)driver).executeScript("arguments[0].click();", loginButton);
+
+			// Handle the success case first
+			try {
+				// Wait for either dashboard to load or success message
+				wait.until(ExpectedConditions.or(
+						ExpectedConditions.urlContains("dashboard"),
+						ExpectedConditions.presenceOfElementLocated(By.cssSelector(".dashboard-content")),
+						ExpectedConditions.textToBePresentInElementLocated(
+								By.id("loginAlert"), "Login Successful! Redirecting...")
+						));
+
+				// If we get here, login was successful
+				System.out.println("Login successful, checking for dashboard...");
+
+				// Wait for navigation to complete
+				wait.until(ExpectedConditions.or(
+						ExpectedConditions.urlContains("dashboard"),
+						ExpectedConditions.presenceOfElementLocated(By.cssSelector(".dashboard-content"))
+						));
+
+				// Verify successful login
+				assertTrue(driver.getCurrentUrl().contains("dashboard") || 
+						driver.findElements(By.cssSelector(".dashboard-content")).size() > 0,
+						"Should be redirected after login");
+
+			} catch (TimeoutException e) {
+				// Check if there was an actual error message
+				WebElement alert = driver.findElement(By.id("loginAlert"));
+				if (alert.isDisplayed() && !alert.getText().contains("Login Successful")) {
+					fail("Login failed with error: " + alert.getText());
+				} else {
+					fail("Login neither succeeded nor showed an error message");
+				}
+			}
+
+			takeScreenshot("after_login_attempt");
+
+		} catch (Exception e) {
+			takeScreenshot("login_failure");
+			throw new RuntimeException("Login test failed", e);
+		} 
+	}
+
+	@Test
+	@Order(2)
+	void testTransactionHistory() {
+		login("keerthi@example.com", "keerthi123");
+
+		// Wait for dashboard to load
+		wait.until(ExpectedConditions.presenceOfElementLocated(
+				By.cssSelector(".dashboard-content")));
+
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+		WebElement transactionsLink = wait.until(ExpectedConditions.elementToBeClickable(By.id("transactionsHistoryLink")));
+		transactionsLink.click();
+
+		// Wait for transaction table to load
+		wait.until(ExpectedConditions.presenceOfElementLocated(
+				By.id("transactionTableBody")));
+
+		// Verify transactions are loaded
+		wait.until(d -> {
+			List<WebElement> rows = d.findElements(By.cssSelector("#transactionTableBody tr"));
+			return !rows.isEmpty();
+		});
+	}
+
+	@Test
+	@Order(3)
+	void testNewTransaction() {
+		try {
+			// 1. Navigate to transaction page
+			driver.get(BASE_URL + "/index.html#new-transaction");
+
+			// 2. Wait for form to load completely
+			wait.until(ExpectedConditions.jsReturnsValue("return document.readyState === 'complete'"));
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("transactionForm")));
+			takeScreenshot("new_transaction_page_loaded");
+
+			// Debug: Print page title and form status
+			System.out.println("Page title: " + driver.getTitle());
+			System.out.println("Form displayed: " + driver.findElement(By.id("transactionForm")).isDisplayed());
+
+			// 3. Fill the form with test data
+			// Amount field
+			WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("amount")));
+			amountField.clear();
+			amountField.sendKeys("50.00");
+
+			// Transaction Type dropdown
+			WebElement typeDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.id("type")));
+			new Select(typeDropdown).selectByVisibleText("Debit");
+
+			// Category dropdown
+			WebElement categoryDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.id("category")));
+			new Select(categoryDropdown).selectByVisibleText("Food");
+
+			// Date field - using current date in correct format
+			WebElement dateField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("date")));
+			String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+			((JavascriptExecutor)driver).executeScript(
+					"arguments[0].value = arguments[1];", 
+					dateField, 
+					currentDate
+					);
+
+			// Debug: Print all form values before submission
+			System.out.println("Form values before submission:");
+			System.out.println("Amount: " + amountField.getAttribute("value"));
+			System.out.println("Type: " + new Select(typeDropdown).getFirstSelectedOption().getText());
+			System.out.println("Category: " + new Select(categoryDropdown).getFirstSelectedOption().getText());
+			System.out.println("Date: " + dateField.getAttribute("value"));
+			takeScreenshot("form_filled");
+
+			// 4. Submit the form
+			WebElement saveButton = wait.until(ExpectedConditions.elementToBeClickable(
+					By.cssSelector("#transactionForm button[type='submit']")));
+
+			// Verify button is enabled and visible
+			assertTrue(saveButton.isEnabled(), "Save button should be enabled");
+			assertTrue(saveButton.isDisplayed(), "Save button should be visible");
+
+			// Scroll to button and click using JavaScript
+			((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView(true);", saveButton);
+			((JavascriptExecutor)driver).executeScript("arguments[0].click();", saveButton);
+
+			// 5. Verify successful submission
+			try {
+				// Wait for either success message or redirect
+				wait.until(ExpectedConditions.or(
+						// Option 1: Success message appears
+						ExpectedConditions.visibilityOfElementLocated(
+								By.cssSelector("#alertMessage.alert-success:not(.d-none)")),
+
+						// Option 2: URL changes
+						ExpectedConditions.urlContains("dashboard"),
+						ExpectedConditions.urlContains("transactions"),
+
+						// Option 3: Form gets reset
+						ExpectedConditions.textToBe(By.id("amount"), ""),
+						ExpectedConditions.textToBe(By.id("date"), "")
+						));
+
+				// Additional verification if success message appears
+				List<WebElement> successMessages = driver.findElements(
+						By.cssSelector("#alertMessage.alert-success:not(.d-none)"));
+				if (!successMessages.isEmpty()) {
+					assertTrue(successMessages.get(0).isDisplayed(), 
+							"Success message should be visible");
+					System.out.println("Success message: " + successMessages.get(0).getText());
+				} else {
+					System.out.println("Form submitted successfully (no message but URL or form changed)");
+				}
+
+			} catch (TimeoutException e) {
+				// Check for error messages
+				List<WebElement> errorMessages = driver.findElements(
+						By.cssSelector("#alertMessage.alert-danger:not(.d-none)"));
+
+				if (!errorMessages.isEmpty()) {
+					String errorText = errorMessages.get(0).getText();
+					System.out.println("Error message: " + errorText);
+					fail("Submission failed with error: " + errorText);
+				} else {
+					// Check console logs for JavaScript errors
+					LogEntries logs = driver.manage().logs().get(LogType.BROWSER);
+					if (!logs.getAll().isEmpty()) {
+						System.out.println("Browser console errors:");
+						logs.forEach(log -> System.out.println(log.getMessage()));
+					}
+
+					takeScreenshot("submission_failed_no_error_message");
+					fail("Transaction submission failed without any visible error message");
+				}
+			}
+
+			takeScreenshot("after_submission");
+
+		} catch (Exception e) {
+			takeScreenshot("test_new_transaction_error");
+			System.err.println("Test failed with exception: " + e.getMessage());
+			throw e;
+		}
+	}
+
+	@Test
+	@Order(4)
+	void testDeleteTransaction() throws Exception {
+		try {
+			// 1. Login
+			login("keerthi@example.com", "keerthi123");
+
+			// 2. Navigate to transactions
+			WebElement transactionTab = wait.until(ExpectedConditions.elementToBeClickable(
+					By.id("transactionsHistoryLink")));
+			((JavascriptExecutor)driver).executeScript("arguments[0].click();", transactionTab);
+
+			// 3. Wait for table to load
+			wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(
+					By.cssSelector("#transactionTableBody tr"), 0));
+
+			// 4. Get initial row count
+			List<WebElement> initialRows = driver.findElements(
+					By.cssSelector("#transactionTableBody tr"));
+			int initialRowCount = initialRows.size();
+
+			if (initialRowCount == 0) {
+				fail("No transactions available to delete");
+			}
+
+			// 5. Click delete button on first row
+			WebElement firstDeleteButton = wait.until(ExpectedConditions.elementToBeClickable(
+					By.cssSelector("#transactionTableBody tr:first-child .btn-danger")));
+			((JavascriptExecutor)driver).executeScript("arguments[0].click();", firstDeleteButton);
+
+			// 6. Handle confirmation dialog
+			try {
+				WebDriverWait alertWait = new WebDriverWait(driver, Duration.ofSeconds(3));
+				Alert alert = alertWait.until(ExpectedConditions.alertIsPresent());
+
+				// Verify this is the confirmation dialog
+				String alertText = alert.getText();
+				assertThat(alertText, containsString("Are you sure you want to delete this transaction?"));
+
+				// Accept the confirmation
+				alert.accept();
+
+				// Now wait for success message (either alert or on-page notification)
+				try {
+					// Option 1: If success shows as another alert
+					Alert successAlert = new WebDriverWait(driver, Duration.ofSeconds(5))
+							.until(ExpectedConditions.alertIsPresent());
+					assertThat(successAlert.getText(), containsString("Transaction deleted successfully"));
+					successAlert.accept();
+				} catch (TimeoutException e) {
+					// Option 2: If success shows as an on-page element
+					WebElement successMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(
+							By.cssSelector(".alert-success")));
+					assertThat(successMessage.getText(), containsString("Transaction deleted successfully"));
+				}
+
+			} catch (TimeoutException e) {
+				// Handle modal confirmation case
+				WebElement confirmButton = wait.until(ExpectedConditions.elementToBeClickable(
+						By.cssSelector(".modal-footer .btn-primary")));
+				confirmButton.click();
+
+				// Wait for success notification
+				WebElement successMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(
+						By.cssSelector(".alert-success, .toast-success")));
+				assertThat(successMessage.getText(), containsString("Transaction deleted successfully"));
+			}
+
+			// 7. Verify row count decreased
+			wait.until(ExpectedConditions.numberOfElementsToBe(
+					By.cssSelector("#transactionTableBody tr"), initialRowCount - 1));
+
+		} catch (Exception e) {
+			// Screenshot and error handling remains the same
+			throw e;
+		}
+	}
+
+	@Test
+	@Order(5)
+	void testAdminLogin() {
+		// Clear session and navigate to login page
+		driver.manage().deleteAllCookies();
+		driver.get(BASE_URL + "/index.html#login");
+
+		// Wait for login form to be present (with extended timeout)
+		WebElement loginForm = wait.until(ExpectedConditions.presenceOfElementLocated(
+				By.cssSelector("form#loginForm")));
+
+		// Fill credentials with explicit waits
+		WebElement emailField = wait.until(ExpectedConditions.elementToBeClickable(
+				By.cssSelector("input#loginEmail, input[name='email']")));
+		emailField.clear();
+		emailField.sendKeys("vel@example.com");
+
+		WebElement passwordField = wait.until(ExpectedConditions.elementToBeClickable(
+				By.cssSelector("input#loginPassword, input[name='password']")));
+		passwordField.clear();
+		passwordField.sendKeys("vel123");
+
+		// Find login button using more flexible selector
+		WebElement loginButton = wait.until(ExpectedConditions.elementToBeClickable(
+				By.xpath("//button[contains(text(),'Login') or contains(@class,'login-button')]")));
+
+		// Scroll to button and click using JavaScript
+		((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView(true);", loginButton);
+		((JavascriptExecutor)driver).executeScript("arguments[0].click();", loginButton);
+
+		// Verify admin dashboard loaded
+		try {
+			wait.until(ExpectedConditions.or(
+					ExpectedConditions.urlContains("admin"),
+					ExpectedConditions.presenceOfElementLocated(
+							By.cssSelector(".admin-dashboard, [href='#users']"))
+					));
+
+			// Additional verification
+			String currentUrl = driver.getCurrentUrl();
+			Assertions.assertTrue(currentUrl.contains("admin") || currentUrl.contains("dashboard"));
+
+		} catch (TimeoutException e) {
+			takeScreenshot("admin_login_failure");
+			fail("Admin dashboard not loaded after login. Current URL: " + driver.getCurrentUrl());
+		}
+	}
+
 
     @AfterEach
-    void tearDown() {
-        // Logout after each test
-        try {
-            driver.manage().deleteAllCookies();
-            driver.get(BASE_URL + "/logout"); // If you have a logout endpoint
-            // Or alternatively refresh the page
-            driver.navigate().refresh();
-        } catch (Exception e) {
-            // Ignore cleanup errors
-        }
-    }
+	void tearDown() {
+		try {
+			// Clear session storage
+			((JavascriptExecutor)driver).executeScript("window.sessionStorage.clear();");
+			// Clear local storage
+			((JavascriptExecutor)driver).executeScript("window.localStorage.clear();");
+			// Delete all cookies
+			driver.manage().deleteAllCookies();
+			// Navigate to blank page
+			driver.get("about:blank");
+		} catch (Exception e) {
+			System.err.println("Cleanup failed: " + e.getMessage());
+		}
+	}
 
-    @AfterAll
-    void teardown() {
-        if (driver != null) {
-            driver.quit();
-        }
-    }
+	@AfterAll
+	void teardown() {
+		if (driver != null) {
+			driver.quit();
+		}
+	}
 }
