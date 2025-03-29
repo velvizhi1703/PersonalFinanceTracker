@@ -79,6 +79,7 @@ class AuthControllerTest {
         when(userRepository.findByEmail("testuser@example.com")).thenReturn(Optional.of(testUser));
 
         mockMvc.perform(post("/api/auth/login")
+        		
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"testuser@example.com\", \"password\":\"password123\"}"))
                 .andExpect(status().isForbidden());
