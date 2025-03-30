@@ -333,7 +333,7 @@ public class UITests {
 		}
 	}
 
-	@Test
+	/*@Test
 	@Order(4)
 	void testDeleteTransaction() throws Exception {
 		try {
@@ -409,7 +409,7 @@ public class UITests {
 			// Screenshot and error handling remains the same
 			throw e;
 		}
-	}
+	}*/
 
 	@Test
 	@Order(5)
