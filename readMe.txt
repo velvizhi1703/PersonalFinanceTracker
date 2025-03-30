@@ -32,4 +32,4 @@ Admin Role Functionalities:
 •	All user Transaction is displayed for Admin
 •	Manage users permission is available to enable/disable the user permission
 
- 
+ Selenium test added
