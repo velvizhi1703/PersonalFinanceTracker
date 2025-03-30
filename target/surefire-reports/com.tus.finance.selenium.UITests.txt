@@ -1,0 +1,12 @@
+-------------------------------------------------------------------------------
+Test set: com.tus.finance.selenium.UITests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 11.332 s <<< FAILURE! - in com.tus.finance.selenium.UITests
+com.tus.finance.selenium.UITests  Time elapsed: 11.332 s  <<< ERROR!
+org.openqa.selenium.remote.http.ConnectionFailedException: 
+Unable to establish websocket connection to http://localhost:57354/devtools/browser/9b911378-e40f-43a9-a622-d52a56137524
+Build info: version: '4.1.4', revision: '535d840ee2'
+System info: host: 'HOME', ip: '192.168.0.3', os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '17.0.12'
+Driver info: driver.version: ChromeDriver
+	at com.tus.finance.selenium.UITests.setup(UITests.java:30)
+
