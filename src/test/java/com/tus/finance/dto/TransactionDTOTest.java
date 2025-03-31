@@ -3,10 +3,10 @@ package com.tus.finance.dto;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TransactionDTOTest {
+class TransactionDTOTest {
 
     @Test
-    public void testGetterAndSetter() {
+  void testGetterAndSetter() {
         // Create a new DTO
         TransactionDTO dto = new TransactionDTO();
 
@@ -25,7 +25,7 @@ public class TransactionDTOTest {
     }
 
     @Test
-    public void testEqualsAndHashCode() {
+  void testEqualsAndHashCode() {
         TransactionDTO dto1 = new TransactionDTO();
         dto1.setId(1L);
         dto1.setDescription("Test");
@@ -46,7 +46,7 @@ public class TransactionDTOTest {
     }
 
     @Test
-    public void testToString() {
+   void testToString() {
         TransactionDTO dto = new TransactionDTO();
         dto.setId(1L);
         dto.setDescription("Test");

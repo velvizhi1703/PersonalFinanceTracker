@@ -1,8 +1,10 @@
 package com.tus.finance.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+
+import com.tus.finance.exception.GlobalExceptionHandler;
 import com.tus.finance.model.Transaction;
 import com.tus.finance.model.TransactionType;
 import com.tus.finance.model.User;
@@ -19,9 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -33,8 +33,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import static org.junit.jupiter.api.Assertions.*;
@@ -67,6 +65,9 @@ class TransactionControllerTest {
 
     private User testUser;
     private Transaction testTransaction;
+    private static final String USER_EMAIL = "vel@example.com";
+    private static final String ADMIN_ROLE = "ADMIN";
+    private static final String USER_ROLE = "USER";
 
     @BeforeEach
     void setUp() {
@@ -82,6 +83,10 @@ class TransactionControllerTest {
         testTransaction.setAmount(BigDecimal.valueOf(100.0));
         testTransaction.setType(TransactionType.DEBIT);
         testTransaction.setCategory("Food");
+        GlobalExceptionHandler exceptionHandler = new GlobalExceptionHandler();
+        mockMvc = MockMvcBuilders.standaloneSetup(transactionController)
+                .setControllerAdvice(exceptionHandler)
+                .build();
     }
 
     @Test
@@ -197,8 +202,34 @@ class TransactionControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void getDashboardStats_shouldHandleNoTransactions() throws Exception {
+        when(jwtUtil.extractUsername("valid-token")).thenReturn("vel@example.com");
+        when(userRepository.findByEmail("vel@example.com")).thenReturn(Optional.of(testUser));
+        when(transactionRepository.getTotalIncomeForUser(1L)).thenReturn(null);
+        when(transactionRepository.getTotalExpenseForUser(1L)).thenReturn(null);
+        when(transactionRepository.countByUserId(1L)).thenReturn(0);
+        when(transactionRepository.findByUserId(1L)).thenReturn(Collections.emptyList());
+        
+        mockMvc.perform(get("/api/transactions/dashboard")
+                .header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.income").value(0.0))
+                .andExpect(jsonPath("$.expense").value(0.0))
+                .andExpect(jsonPath("$.cash_in_hand").value(0.0))
+                .andExpect(jsonPath("$.num_transactions").value(0));
+    }
 
-    
+    @Test
+    void getDashboardStats_shouldHandleInvalidToken() throws Exception {
+        when(jwtUtil.extractUsername("invalid-token"))
+            .thenThrow(new RuntimeException("Invalid token"));
+        
+        mockMvc.perform(get("/api/transactions/dashboard")
+                .header("Authorization", "Bearer invalid-token"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string("Invalid authentication token"));
+    }
 }
  
 

@@ -52,8 +52,6 @@ public class AuthController {
 					);
 			  logger.debug("Authentication success for {}", request.getEmail());
 
-		//UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
 			String role = authentication.getAuthorities()
 					.stream()
 					.map(GrantedAuthority::getAuthority)
