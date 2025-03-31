@@ -19,6 +19,14 @@
 	 <sonar.language>java</sonar.language>
     <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     <sonar.junit.reportPaths>${project.basedir}/target/surefire-reports</sonar.junit.reportPaths>
+	 <sonar.tests>src/test/java</sonar.tests>
+    <sonar.test.inclusions>**/*Test.java,**/*Tests.java</sonar.test.inclusions>
+    <sonar.coverage.exclusions>**/*Test.java,**/*Tests.java</sonar.coverage.exclusions>
+    
+    <!-- Important additions -->
+    <sonar.java.binaries>target/classes</sonar.java.binaries>
+    <sonar.java.test.binaries>target/test-classes</sonar.java.test.binaries>
+    <sonar.java.libraries>target/classes</sonar.java.libraries>
 	</properties>
 	<dependencies>
 		<dependency>
