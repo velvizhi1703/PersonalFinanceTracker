@@ -1,5 +1,8 @@
 package com.tus.finance.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import com.tus.finance.model.Transaction;
 import com.tus.finance.model.TransactionType;
 import com.tus.finance.model.User;
@@ -16,6 +19,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -24,8 +31,13 @@ import java.util.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-
+import static org.mockito.ArgumentMatchers.any;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpStatus;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 class TransactionControllerTest {
 
@@ -42,7 +54,8 @@ class TransactionControllerTest {
 
     @Mock
     private TransactionRepository transactionRepository;
-
+    @Mock
+    private Authentication authentication;
     @Mock
     private BudgetRepository budgetRepository;
 
@@ -117,6 +130,75 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.cash_in_hand").value(3000.0))
                 .andExpect(jsonPath("$.num_transactions").value(10));
     }
+    @Test
+    void addTransaction_WhenUserNotFound_ShouldReturnNotFound() {
+        // Arrange
+        when(authentication.getName()).thenReturn("test@example.com");
+        when(userService.findByEmail("test@example.com")).thenReturn(Optional.empty());
+        
+        // Act
+        ResponseEntity<EntityModel<Transaction>> response = 
+            transactionController.addTransaction(testTransaction, authentication);
+        
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+    
+    @Test
+    void addTransaction_WithNullTransaction_ShouldReturnBadRequest() {
+      
+        
+        // Act
+        ResponseEntity<EntityModel<Transaction>> response = 
+            transactionController.addTransaction(null, authentication);
+        
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNull(response.getBody());
+        verify(authentication, never()).getName();
+    }
+    
+    @Test
+    void addTransaction_WithValidInput_ShouldReturnCreatedTransaction() {
+        // Arrange
+        when(authentication.getName()).thenReturn("test@example.com");
+        when(userService.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
+        
+        Transaction savedTransaction = new Transaction();
+        savedTransaction.setId(1L);
+        savedTransaction.setUser(testUser);
+        when(transactionService.addTransaction(any(Transaction.class))).thenReturn(savedTransaction);
+        
+        // Act
+        ResponseEntity<EntityModel<Transaction>> response = 
+            transactionController.addTransaction(testTransaction, authentication);
+        
+        // Assert
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1L, response.getBody().getContent().getId());
+        assertEquals(testUser, response.getBody().getContent().getUser());
+        
+        // Verify links
+        assertTrue(response.getBody().getLinks().hasSize(2));
+        assertTrue(response.getBody().getLinks().stream()
+            .anyMatch(link -> link.getRel().value().equals("self")));
+        assertTrue(response.getBody().getLinks().stream()
+            .anyMatch(link -> link.getRel().value().equals("user-transactions")));
+    }
 
 
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void getTransactionsByUserId_ShouldReturnNotFound_WhenNoTransactions() throws Exception {
+     
+        mockMvc.perform(get("/transactions/user/1"))
+                .andExpect(status().isNotFound());
+    }
+
+
+    
 }
+ 
+
