@@ -93,4 +93,58 @@ class BudgetControllerTest {
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isEmpty());
     }
+
+    @Test
+    void getBudgetByMonth_Success() {
+        int month = 5;
+        int year = 2023;
+        
+        when(authentication.getName()).thenReturn("test@example.com");
+        when(userService.findByEmail("test@example.com")).thenReturn(Optional.of(mockUser));
+        when(budgetService.getBudgetByMonthAndYear(1L, month, year))
+            .thenReturn(Optional.of(mockBudget));
+
+        ResponseEntity<ApiResponseDto<Budget>> response = 
+            budgetController.getBudgetByMonth(month, year, authentication);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("Budget found", response.getBody().getMessage());
+        assertEquals(mockBudget, response.getBody().getData());
+    }
+
+    @Test
+    void getBudgetByMonth_UserNotFound() {
+        int month = 5;
+        int year = 2023;
+        
+        when(authentication.getName()).thenReturn("test@example.com");
+        when(userService.findByEmail("test@example.com")).thenReturn(Optional.empty());
+
+        // Expect RuntimeException to be thrown
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            budgetController.getBudgetByMonth(month, year, authentication);
+        });
+        
+        assertEquals("User not found", exception.getMessage());
+    }
+
+    @Test
+    void getBudgetByMonth_BudgetNotFound() {
+        int month = 5;
+        int year = 2023;
+        
+        when(authentication.getName()).thenReturn("test@example.com");
+        when(userService.findByEmail("test@example.com")).thenReturn(Optional.of(mockUser));
+        when(budgetService.getBudgetByMonthAndYear(1L, month, year))
+            .thenReturn(Optional.empty());
+
+        ResponseEntity<ApiResponseDto<Budget>> response = 
+            budgetController.getBudgetByMonth(month, year, authentication);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("No budget found for this month & year", response.getBody().getMessage());
+        assertNull(response.getBody().getData());
+    }
 }
