@@ -16,6 +16,9 @@
 		<java.version>11</java.version>
 		<sonar.host.url>http://localhost:9000</sonar.host.url>
 		<sonar.login>squ_2c22093bd27514970e0150eb9d9ade6a42ccbf4a</sonar.login>
+	 <sonar.language>java</sonar.language>
+    <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+    <sonar.junit.reportPaths>${project.basedir}/target/surefire-reports</sonar.junit.reportPaths>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -151,12 +154,7 @@
 			<version>5.2.3</version>
 		</dependency>
 
-		<!-- Lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<scope>provided</scope>
-		</dependency>
+	
 
 		<!-- BCrypt for Password Hashing -->
 		<dependency>
@@ -228,6 +226,10 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                         <configuration>
+                <outputDirectory>target/site/jacoco</outputDirectory>
+                <formats>XML,HTML</formats> <!-- This ensures both report types -->
+            </configuration>
                     </execution>
                     <!-- Ensures coverage checks in the verify phase -->
                     <execution>
