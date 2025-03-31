@@ -11,5 +11,8 @@ class FinanceApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
+	@Test
+    void mainMethodRuns() {
+        FinanceApplication.main(new String[] {});
+    }
 }
